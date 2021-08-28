@@ -89,8 +89,8 @@ CMainFrame::CMainFrame()
 	// TODO: add member initialization code here
 	m_debugstr = new debug_stream;
 	lframe::set_global();
-	ASM386::pFrame = m_frame;
-	ASM386::P2ResetDebugSymbols ();
+	command_proc::pFrame = m_frame;
+	command_proc::reset_debug_symbols();
 }
 
 CMainFrame::~CMainFrame()
@@ -228,7 +228,7 @@ LRESULT CMainFrame::OnRxSerialString (WPARAM w, LPARAM l)
 		}
 	}
 	LPARAM l2 = (LPARAM)m_debugstr;
-	ASM386::P2ParseDebugString();
+	command_proc::parse_debug_string();
 //	send parsed message to correct view. 
 	pView->PostMessage (WM_UPDATE_TEXT,w,l);
 	return res;

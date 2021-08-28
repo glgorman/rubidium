@@ -17,11 +17,13 @@
 #define quote(X) #X
 typedef void (*debug_cmd_proc) (void);
 
-lframe *ASM386::pFrame;
+lframe *command_proc::pFrame;
 
 char ASM386::m_debugStr [256];
 
-char *debug_tokens[] = 
+#define PI (3.14159265358979323)
+
+char *command_proc::debug_tokens[] = 
 {
 	"SCOPE","SCOPE_XY","SCOPE_RT","PLOT","TERM","TITLE","POS","SIZE",
 	"RANGE","OFFSET","SAMPLES","TRIGGER","LABEL","COLOR","BACKCOLOR",
@@ -41,22 +43,56 @@ public:
 	TypeName *operator() (void) { return &m_data; };
 };
 
-debug_cmd_proc cmd_map [255] =
-{	
-	&ASM386::P2ResetDebugSymbols,
-	&ASM386::P2ParseDebugString,
+dbg_proc0 command_proc::debug_exec =
+{
+	&command_proc::FSCOPE,
+	&command_proc::FSCOPE_XY,
+	&command_proc::FSCOPE_RT,
+	&command_proc::FPLOT,
+	&command_proc::FTERM,
+	&command_proc::FTITLE,
+	&command_proc::FPOS,
+	&command_proc::FSIZE1,
+	&command_proc::FRANGE,
+	&command_proc::FOFFSET,
+	&command_proc::FSAMPLES,
+	&command_proc::FTRIGGER,
+	&command_proc::FLABEL,
+	&command_proc::FCOLOR,
+	&command_proc::FBACKCOLOR,
+	&command_proc::FGRIDCOLOR,
+	&command_proc::FDOTSIZE,
+	&command_proc::FLOGSCALE,
+	&command_proc::FCLEAR,
+	&command_proc::FSAVE,
+	&command_proc::FUPDATE,
+	&command_proc::FLINESIZE,
+	&command_proc::FLINECOLOR,
+	&command_proc::FFILLCOLOR,
+	&command_proc::FTO,
+	&command_proc::FRECT1,
+	&command_proc::FRECTFILL,
+	&command_proc::FOVAL,
+	&command_proc::FOVALFILL,
+	&command_proc::FPOLY,
+	&command_proc::FPOLYFILL,
+	&command_proc::FTEXTSIZE,
+	&command_proc::FTEXTCOLOR,
+	&command_proc::FTEXTSTYLE,
+	&command_proc::FTEXT,
+	&command_proc::FNULL1,
 };
 
-
-void  ASM386::P2ResetDebugSymbols()
+void command_proc::reset_debug_symbols()
 {
+	command_proc pdbg;
 	frame &f = *(pFrame->get());
 	symbol_table *t=NULL;
-	t = f.cons(debug_tokens)->sort();
-
+	t = f.cons(command_proc::debug_tokens)->sort();
+	pdbg.exec(NULL1);
 }
 
-void  ASM386::P2ParseDebugString()
+void  command_proc::parse_debug_string()
 {
 //	node_list<char*> N0;
 //	text_object T1;
@@ -121,8 +157,187 @@ void TEST::node_test2(node_list<char*> &N1)
 	}
 }
 
+void command_proc::exec(debug_id id)
+{
+	(*debug_exec[id])();
+};
 
+void command_proc::FSCOPE()
+{
+	
+}
 
+void command_proc::FSCOPE_XY()
+{
+	
+}
 
+void command_proc::FSCOPE_RT()
+{
+	
+}
 
+void command_proc::FPLOT()
+{
+	
+}
 
+void command_proc::FTERM()
+{
+	
+}
+
+void command_proc::FTITLE()
+{
+	
+}
+
+void command_proc::FPOS()
+{
+	
+}
+
+void command_proc::FSIZE1()
+{
+	
+}
+
+void command_proc::FRANGE()
+{
+	
+}
+
+void command_proc::FOFFSET()
+{
+	
+}
+
+void command_proc::FSAMPLES()
+{
+	
+}
+
+void command_proc::FTRIGGER()
+{
+	
+}
+
+void command_proc::FLABEL()
+{
+	
+}
+
+void command_proc::FCOLOR()
+{
+	
+}
+
+void command_proc::FBACKCOLOR()
+{
+	
+}
+
+void command_proc::FGRIDCOLOR()
+{
+	
+}
+
+void command_proc::FDOTSIZE()
+{
+	
+}
+
+void command_proc::FLOGSCALE()
+{
+	
+}
+
+void command_proc::FCLEAR()
+{
+	
+}
+
+void command_proc::FSAVE()
+{
+	
+}
+
+void command_proc::FUPDATE()
+{
+	
+}
+
+void command_proc::FLINESIZE()
+{
+	
+}
+
+void command_proc::FLINECOLOR()
+{
+	
+}
+
+void command_proc::FFILLCOLOR()
+{
+	
+}
+
+void command_proc::FTO()
+{
+	
+}
+
+void command_proc::FRECT1()
+{
+	
+}
+
+void command_proc::FRECTFILL()
+{
+	
+}
+
+void command_proc::FOVAL()
+{
+	
+}
+
+void command_proc::FOVALFILL()
+{
+	
+}
+
+void command_proc::FPOLY()
+{
+	
+}
+
+void command_proc::FPOLYFILL()
+{
+	
+}
+
+void command_proc::FTEXTSIZE()
+{
+	
+}
+
+void command_proc::FTEXTCOLOR()
+{
+	
+}
+
+void command_proc::FTEXTSTYLE()
+{
+	
+}
+
+void command_proc::FTEXT()
+{
+	
+}
+
+void command_proc::FNULL1()
+{
+	
+}
