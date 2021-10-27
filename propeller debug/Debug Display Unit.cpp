@@ -138,10 +138,17 @@ void TDebugDisplayDoc::SetSize(int MarginX, int MarginY)
 void TDebugDisplayDoc::clear_bitmap()
 {
 	int i, x, y;
-	COLORREF color;
+	COLORREF color, bkColor;
 	string s;
 	CDC *pDC = m_pdc;
 	
+	if (m_display_type==dis_grand_staff)
+	{
+		bkColor = COLOR::white;
+	}
+	else
+		bkColor = m_vBackColor;
+
 	CRect rect;
 	m_pView->GetClientRect(&rect);
 	m_client_width = rect.Width();
@@ -162,15 +169,22 @@ void TDebugDisplayDoc::clear_bitmap()
 		color = (m_ch[i].m_vColor&0x00FCFCFC)>>1;
 		pens[i].CreatePen(PS_DOT,2,color);
 	}
-	brushes[0].CreateSolidBrush(COLORREF(m_vBackColor));
+	brushes[0].CreateSolidBrush(COLORREF(bkColor));
 	brushes[1].CreateSolidBrush(COLORREF(m_vGridColor));
-	pDC->SetBkColor(m_vBackColor);
+	pDC->SetBkColor(bkColor);
 	pDC->SetTextColor(m_vTextColor);
 	pDC->SelectObject(&pgrid);
 	pDC->SelectObject(&(brushes[0]));
 	pDC->FillRect(&rect,&(brushes[0]));
-		
-	if ((m_display_type==dis_scope_xy)||(m_display_type==dis_scope_rt))
+
+	if (m_display_type==dis_grand_staff)
+	{
+//	todo - paint any watermarks, optional page numbers
+//	etc, before calling draw functions  - elsewere.
+		return;
+	}
+	else if ((m_display_type==dis_scope_xy)
+		||(m_display_type==dis_scope_rt))
 	{
 	// draw grid pattern for polar plot
 		pDC->SelectObject(&pgrid); //m_vGridColor;
@@ -203,8 +217,7 @@ void TDebugDisplayDoc::clear_bitmap()
 		SmithChart S(COLOR::yellow);
 		S.RenderProc(pDC,(CSignalView*)m_pView);
 	}
-	
-	switch (m_display_type)
+	else switch (m_display_type)
 	{
 	case dis_scope:
 //		pDC->SelectObject(&(brushes[0]));

@@ -10,6 +10,51 @@
 class CSignalView;
 class CTerminalDoc;
 
+typedef enum note_type
+{
+	SIXTEENTH,
+	EIGTH,
+	QUARTER,
+	HALF,
+	WHOLE
+};
+
+class SETCOLOR 
+{
+#define THICKNESS 2
+
+private:
+	CPen	*m_pOldPen, m_pen;
+	CBrush	*m_pOldBrush, m_brush;
+	CDC		*m_pCDC;
+
+public:	
+	SETCOLOR (CDC *pCDC, COLORREF c)
+	{
+		int thickness = THICKNESS;
+		m_pCDC = pCDC;
+		m_pen.CreatePen (PS_SOLID,thickness,c);
+		m_brush.CreateSolidBrush (c);
+		m_pOldPen = m_pCDC->SelectObject (&m_pen);
+		m_pOldBrush = m_pCDC->SelectObject (&m_brush);
+	}
+	SETCOLOR (CDC *pCDC, COLORREF c1, COLORREF c2)
+	{
+		int thickness = THICKNESS;
+		m_pCDC = pCDC;
+		m_pen.CreatePen (PS_SOLID,thickness,c1);
+		m_brush.CreateSolidBrush (c2);
+		m_pOldPen = m_pCDC->SelectObject (&m_pen);
+		m_pOldBrush = m_pCDC->SelectObject (&m_brush);
+	}
+	~SETCOLOR ()
+	{
+		m_pCDC->SelectObject (m_pOldPen);
+		m_pCDC->SelectObject (m_pOldBrush);
+	}
+};
+
+#if 0
 class SETCOLOR 
 {
 #define THICKNESS 2
@@ -57,6 +102,20 @@ public:
 		m_pCDC->SelectObject (m_pOldBrush);
 	}
 };
+#endif
+
+class FFT_PLOT
+{
+	CFont font;
+	CDC* m_graph;
+	UINT m_height, m_width;
+
+public:
+	void set_dc (CDC *pdc,  CSignalView *where);
+	void plot_text(int x, int y, int sz, char *msg);
+	void plot_note (int midi, MATH_TYPE time, note_type type);
+	void plot_grand_staff ();
+};
 
 class SmithChart
 {
@@ -78,6 +137,7 @@ public:
 class CSignalView:public INHERIT_FROM
 {
 private:
+	CRect	m_update_region;
 	CString m_description;
 	CString m_text;
 	BOOL m_defaultErase;
@@ -144,6 +204,7 @@ public:
 	afx_msg void OnTerminalSmithPlot();
 	afx_msg void OnTerminalTextmode();
 	afx_msg void OnTerminalXyplotter();
+	afx_msg void OnTerminalMusicalnotation();
 };
 
 #ifndef _DEBUG  // debug version in P2 Graphical Debug TerminalView.cpp

@@ -53,6 +53,7 @@ BEGIN_MESSAGE_MAP(CSignalView,INHERIT_FROM)
 	ON_COMMAND(ID_TERMINAL_DISASSEMBLER, &CSignalView::OnTerminalDisassembler)
 	ON_COMMAND(ID_TERMINAL_HTMLVIEW, &CSignalView::OnTerminalHtmlview)
 	ON_COMMAND(ID_TERMINAL_TEXTMODE, &CSignalView::OnTerminalTextmode)
+	ON_COMMAND(ID_VIEW_MUSICALNOTATION, &CSignalView::OnTerminalMusicalnotation)
 	ON_COMMAND(ID_TERMINAL_OSCILLOSCOPESETTINGS, &CSignalView::OnTerminalOscilloscope)
 	ON_COMMAND(ID_TERMINAL_POLARPLOT,&CSignalView::OnTerminalPolarPlot)
 	ON_COMMAND(ID_TERMINAL_SMITHPLOT,&CSignalView::OnTerminalSmithPlot)
@@ -280,10 +281,14 @@ afx_msg void CSignalView::OnKeyUp (UINT nChar, UINT nRepCnt, UINT nFlags)
 void CSignalView::OnDrawGDI (CDC *dc)
 {
 	CTerminalDoc *pDoc = GetDocument();
-	dc->SelectObject(&pDoc->m_font);
-
-	m_dbgDoc.set_dc(dc);
 	m_dbgDoc.clear_bitmap ();
+	dc->SelectObject(&pDoc->m_font);
+	if (m_dbgDoc.m_display_type==dis_grand_staff)
+	{
+		FFT_PLOT fft;	
+		fft.set_dc(dc,this);
+		fft.plot_grand_staff();
+	}
 //	m_dbgDoc.update_display ();
 }
 
@@ -302,7 +307,6 @@ void CSignalView::OnDraw(CDC *dc)
 	bool m_buffer=true;
 	bool m_bIsPrinting=false;
 	bool m_use_metafile=false;
-	CRect	m_update_region;
 	
 	if (dc->m_bPrinting==TRUE)
 	{
@@ -354,8 +358,8 @@ void CSignalView::OnDraw(CDC *dc)
 	}
 	else
 	{
+//		dc->SetBkColor (COLOR::black);
 		OnDrawGDI (dc);
-		dc->SetBkColor (COLOR::black);
 		dc->SetTextColor (COLOR::yellow);
 		dc->DrawText (m_description,m_update_region,DT_CENTER);
 		dc->DrawText (m_text,m_update_region,DT_LEFT);
@@ -465,6 +469,14 @@ void CSignalView::OnTerminalXyplotter()
 {
 	m_description = _T("");
 	m_dbgDoc.set_display_type (dis_scope_xy);
+	m_update=true;
+	m_debug_trace = false;
+}
+
+void CSignalView::OnTerminalMusicalnotation()
+{
+	m_description = _T("");
+	m_dbgDoc.set_display_type (dis_grand_staff);
 	m_update=true;
 	m_debug_trace = false;
 }

@@ -72,6 +72,7 @@ typedef enum display_type
 	dis_term,
 	dis_midi,
 	dis_smith,
+	dis_grand_staff,
 };
 
 typedef enum command_type
@@ -174,6 +175,7 @@ protected:
 	LOGFONT m_lf;
 
 public:
+	display_type m_display_type;
 	CDC	*m_pdc;
 	render_context m_rc[2];
 	int m_client_width;
@@ -226,7 +228,6 @@ private:
 
 private:
 	command_id m_val;
-	display_type m_display_type;
 	COLORREF m_vBackColor;
 	COLORREF m_vGridColor;
 	COLORREF m_vLineColor;
