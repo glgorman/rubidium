@@ -281,13 +281,15 @@ afx_msg void CSignalView::OnKeyUp (UINT nChar, UINT nRepCnt, UINT nFlags)
 void CSignalView::OnDrawGDI (CDC *dc)
 {
 	CTerminalDoc *pDoc = GetDocument();
-	m_dbgDoc.clear_bitmap ();
 	dc->SelectObject(&pDoc->m_font);
+	m_dbgDoc.set_dc(dc);
+	m_dbgDoc.clear_bitmap ();
 	if (m_dbgDoc.m_display_type==dis_grand_staff)
 	{
 		FFT_PLOT fft;	
 		fft.set_dc(dc,this);
 		fft.plot_grand_staff();
+		fft.plot_notes();
 	}
 //	m_dbgDoc.update_display ();
 }

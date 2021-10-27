@@ -109,12 +109,19 @@ class FFT_PLOT
 	CFont font;
 	CDC* m_graph;
 	UINT m_height, m_width;
+	int NUMBER_OF_STAVVES_PER_PAGE;
+	int NUMBER_OF_MEASURES_PER_LINE;
+	int NUMBER_OF_NOTES_PER_MEASURE;
 
-public:
-	void set_dc (CDC *pdc,  CSignalView *where);
+protected:
 	void plot_text(int x, int y, int sz, char *msg);
 	void plot_note (int midi, MATH_TYPE time, note_type type);
+
+public:
+	FFT_PLOT();
+	void set_dc (CDC *pdc,  CSignalView *where);
 	void plot_grand_staff ();
+	void plot_notes ();
 };
 
 class SmithChart

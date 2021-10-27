@@ -117,6 +117,31 @@ void FFT_PLOT::plot_note (int midi, MATH_TYPE time, note_type type)
 	}
 }
 
+FFT_PLOT::FFT_PLOT()
+{
+	NUMBER_OF_STAVVES_PER_PAGE = 4;
+	NUMBER_OF_MEASURES_PER_LINE = 4;
+	NUMBER_OF_NOTES_PER_MEASURE = 4;
+}
+
+void FFT_PLOT::plot_notes ()
+{
+	int i,j,note_index;
+	MATH_TYPE offset;
+	note_type type = QUARTER;
+	int span = NUMBER_OF_MEASURES_PER_LINE*NUMBER_OF_NOTES_PER_MEASURE;
+	for (i=0;i<NUMBER_OF_MEASURES_PER_LINE;i++)
+	for (j=0;j<NUMBER_OF_NOTES_PER_MEASURE;j++)
+	{
+		note_index = i*NUMBER_OF_NOTES_PER_MEASURE+j;
+		offset = float(note_index)/span;
+		plot_note (48+note_index,offset,type);
+		plot_note (60+note_index,offset,type);
+//	plot_note (51+note_index,offset,type);
+//	plot_note (55+note_index,offset,type);
+	}
+}
+
 void FFT_PLOT::plot_grand_staff ()
 {
 //	char treble_clef[] = {0xF0,0x9D,0x84,0x9E,0};
@@ -125,11 +150,8 @@ void FFT_PLOT::plot_grand_staff ()
 	
 	CDC *graph = m_graph;
 	graph->SetBkColor(COLOR::white);
-	SETCOLOR _(graph,COLOR::red);
+	SETCOLOR _(graph,COLOR::black);
 	int i,j,k,x0,x1,y0,y1,y5;
-	int NUMBER_OF_STAVVES_PER_PAGE = 4;
-	int NUMBER_OF_MEASURES_PER_LINE = 4;
-	int NUMBER_OF_NOTES_PER_MEASURE = 4;
 	int note_x, note_y;
 	int page_offset;
 
@@ -194,18 +216,5 @@ void FFT_PLOT::plot_grand_staff ()
 //	TODO
 //	plot F clef
 //	todo
-	}
-	int note_index;
-	note_type type = QUARTER;
-	int span = NUMBER_OF_MEASURES_PER_LINE*NUMBER_OF_NOTES_PER_MEASURE;
-	for (i=0;i<NUMBER_OF_MEASURES_PER_LINE;i++)
-	for (j=0;j<NUMBER_OF_NOTES_PER_MEASURE;j++)
-	{
-		note_index = i*NUMBER_OF_NOTES_PER_MEASURE+j;
-		offset = float(note_index)/span;
-		plot_note (48+note_index,offset,type);
-		plot_note (60+note_index,offset,type);
-//	plot_note (51+note_index,offset,type);
-//	plot_note (55+note_index,offset,type);
 	}
 }
