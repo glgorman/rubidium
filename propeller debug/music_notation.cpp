@@ -38,8 +38,8 @@ int MIDI::tomidi (char *note, int octave)
 			break;
 		}
 	}
-	result = 12*octave+offset;
-	return offset;
+	result = 12*(1+octave)+offset;
+	return result;
 }
 
 void FFT_PLOT::set_dc (CDC *pdc,  CSignalView *view)
@@ -49,14 +49,15 @@ void FFT_PLOT::set_dc (CDC *pdc,  CSignalView *view)
 	view->GetClientRect(&rect);
 	m_width = rect.Width();
 	m_height = rect.Height();
+	int font_size = 3*m_width/128;
+	font.CreateFont(font_size, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _T("Sonata"));
 }
 
-void FFT_PLOT::plot_text(int x, int y, int sz, char *msg)
-{
-	font.CreateFont(sz, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, _T("Sonata"));
+void FFT_PLOT::plot_text(int x, int y,char *msg)
+{	
 	CDC *graph = m_graph;
 	CGdiObject *pOldFont = graph->SelectObject(&font); // save the current font
-	graph->SetTextColor (COLOR::blue);
+	graph->SetTextColor (COLOR::black);
 	CRect text_pos;	
 	text_pos.left = x;
 	text_pos.top = y;
@@ -64,7 +65,7 @@ void FFT_PLOT::plot_text(int x, int y, int sz, char *msg)
 	text_pos.bottom = 0;
 	graph->DrawText ((const CString)msg,text_pos,DT_LEFT|DT_CALCRECT);
 	graph->DrawText ((const CString)msg,text_pos,DT_LEFT);
-//	graph->SelectObject(&pOldFont);
+	graph->SelectObject(&pOldFont);
 }
 
 void FFT_PLOT::plot_note (int midi, MATH_TYPE time, note_type type)
@@ -79,7 +80,7 @@ void FFT_PLOT::plot_note (int midi, MATH_TYPE time, note_type type)
 	int octave, index, vpos;
 	octave = midi/12-1;
 	index = midi%12;
-	bool flat_scale = true;
+	bool flat_scale = false;
 	char *note_name;
 	if (flat_scale==true)
 		note_name = MIDI::note_names2[index];
@@ -101,15 +102,14 @@ void FFT_PLOT::plot_note (int midi, MATH_TYPE time, note_type type)
 	x0 = 0.10*m_width;
 	x1 = 0.96*m_width;
 	xp = time*(x1-x0)+x0;
-	dx = 0.008*m_width;
+	dx = 0.009*m_width;
 	y0 = y_scale*(0+2)*m_width;
 	y5 = y_scale*(10+2)*m_width;
 	y2 = phi+(y0+y5)/2;
-	int font_size = 3*m_width/128;
 	graph->Ellipse (xp-dx,
 		y2-dx,xp+dx,y2+dx);
-//	if (is_accidental)
-//		plot_text(xp-2*dx,y2-2*dx,font_size,&note_name[1]);
+	if (is_accidental)
+		plot_text(xp-2*dx,y2-2*dx,&note_name[1]);
 	if (type==QUARTER)
 	{
 		graph->MoveTo (xp+dx,y2);
@@ -126,19 +126,16 @@ FFT_PLOT::FFT_PLOT()
 
 void FFT_PLOT::plot_notes ()
 {
-	int i,j,note_index;
-	MATH_TYPE offset;
+	int midi_val;
+	int i,j,k,note_index;
+	MATH_TYPE h_offset;
+	int v_offset;
 	note_type type = QUARTER;
-	int span = NUMBER_OF_MEASURES_PER_LINE*NUMBER_OF_NOTES_PER_MEASURE;
-	for (i=0;i<NUMBER_OF_MEASURES_PER_LINE;i++)
-	for (j=0;j<NUMBER_OF_NOTES_PER_MEASURE;j++)
+	for (note_index=0;note_index<16;note_index++)
 	{
-		note_index = i*NUMBER_OF_NOTES_PER_MEASURE+j;
-		offset = float(note_index)/span;
-		plot_note (48+note_index,offset,type);
-		plot_note (60+note_index,offset,type);
-//	plot_note (51+note_index,offset,type);
-//	plot_note (55+note_index,offset,type);
+		midi_val = MIDI::tomidi(MIDI::pachelbel[note_index%8],3);
+		h_offset = (note_index%16)/16.0;
+		plot_note (midi_val,h_offset,type);
 	}
 }
 

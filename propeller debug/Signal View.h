@@ -114,7 +114,7 @@ class FFT_PLOT
 	int NUMBER_OF_NOTES_PER_MEASURE;
 
 protected:
-	void plot_text(int x, int y, int sz, char *msg);
+	void plot_text(int x, int y, char *msg);
 	void plot_note (int midi, MATH_TYPE time, note_type type);
 
 public:
