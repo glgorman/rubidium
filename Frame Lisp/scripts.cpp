@@ -153,7 +153,7 @@ int script::getNumber (char *buffer)
 		if (m_ifile.eof ()!=0) {
 			eof = true;
 			break; }
-		if (theChar > '9' || theChar < '0')
+		if (theChar>'9' || theChar<'0')
 			endOfWord = true;
 		if ((count>0)&&(endOfWord==true)) {
 			m_ifile.putback (theChar);

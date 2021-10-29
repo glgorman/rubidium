@@ -62,7 +62,7 @@ bool symbol_table::compare (token item1, token item2)
 	strcpy (buffer2,item2.ascii);
 	to_lower (buffer1);
 	to_lower (buffer2);
-	if	((item1.m_count < item2.m_count)
+	if	((item1.m_count<item2.m_count)
 		||((item1.m_count==item2.m_count)
 		&&(strcmp(buffer1,buffer2)>0)))
 		return false;

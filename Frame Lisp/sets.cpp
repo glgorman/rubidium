@@ -13,6 +13,18 @@
 
 #define	SETSZ (16)
 
+namespace chartype
+{
+	SET digits(10,'0','1','2','3','4','5','6','7','8','9');
+	SET whitespace(3,' ','\t','\n');
+	SET alpha(52,'A','B','C','D','E','F','G','H','I','J','K','L','M',
+		'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+		'a','b','c','d','e','f','g','h','i','j','k','l','m',
+		'n','o','p','q','r','s','t','u','v','w','x','y','z');
+	SET punct1(10,'.',',',':','\'','(',')','{','}','[',']');
+	SET operat(11,'+','-','*','/','%','|','~','=','&','>','<');
+}
+
 SET::SET()
 {
 	memset(bits,0,sizeof(DWORD)*SETSZ);
@@ -48,6 +60,17 @@ SET &SET::operator - (const SET &x)
 	for (i=0;i<SETSZ;i++)
 		bits[i]&=(!x.bits[i]);
 	return (*this);
+}
+
+int SET::count()
+{
+	int i, j;
+	int result=0;
+	for (i=0;i<SETSZ;i++)
+	for (j=0;j<32;j++)
+		if (bits[i]&(0x1<<j))
+			result++;
+	return result;
 }
 
 bool SET::in(int s)

@@ -19,6 +19,7 @@ protected:
 
 public:
 	bool in(int s);
+	int count();
 	virtual SET &UNION(const SET&);
 	virtual SET &INTERSECT(const SET&);
 	virtual SET &operator + (const SET &);
@@ -26,6 +27,15 @@ public:
 	SET();
 	SET(int,...);
 };
+
+namespace chartype
+{
+	extern SET digits;
+	extern	SET whitespace;
+	extern	SET alpha;
+	extern	SET punct1;
+	extern	SET operat;
+}
 
 class SETOFSYS: public SET 
 {

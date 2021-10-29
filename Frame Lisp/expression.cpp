@@ -303,7 +303,7 @@ text_object mathObj::alg2polish (text_object theInput)
 long abs (long arg)
 {
 	long result;
-	if (arg < 0)
+	if (arg<0)
 		result = -arg;
 	else
 		result = arg;

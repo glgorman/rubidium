@@ -34,10 +34,10 @@ public:
 	fraction &operator -= (fraction arg);
 	fraction &operator - (void);
 
-	bool operator < (fraction arg);
-	bool operator > (fraction arg);
-	bool operator < (int arg);
-	bool operator > (int arg); 
+	bool operator<(fraction arg);
+	bool operator>(fraction arg);
+	bool operator<(int arg);
+	bool operator>(int arg); 
 
 	operator MATH_TYPE ();
 	fraction &operator = (fraction &arg);

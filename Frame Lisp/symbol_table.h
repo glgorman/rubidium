@@ -5,7 +5,10 @@ class token
 {	
 public:
 	char *ascii;
-	int m_count;
+	union {
+		int m_count;
+		int m_index;
+	};
 	token ();
 };
 
