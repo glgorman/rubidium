@@ -18,17 +18,11 @@ bTreeType<char*> *m_root;
 
 frame theFrame;
 frame *lframe::m_pFrame = NULL;
+debug_stream *lframe::m_debugstr = NULL;
 
 void lframe::set_global ()
 {
 	m_pFrame = &theFrame;
-}
-
-void lframe::load_binary_file (char *fname)
-{
-	CString msg;
-	msg.Format(_T("The Unicorn is in the Garden!%s"),fname);
-	AfxMessageBox(msg,IDOK);
 }
 
 #define threadRipText
