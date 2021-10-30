@@ -9,8 +9,6 @@ class CMainFrame: public CMDIFrameWnd
 {
 public:
 	lframe *m_frame;
-	debug_stream *m_debugstr;
-
 	CString m_str_version, m_str_tracing;
 	DECLARE_DYNAMIC(CMainFrame)
 

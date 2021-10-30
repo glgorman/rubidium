@@ -628,7 +628,13 @@ void TDebugDisplayDoc::configure_scope()
 	SetSize(m_cWidth, m_cHeight*2);
 	// Set unique defaults
 	vDotSize = 0;
-	
+
+	process_parameters();
+}
+
+
+void TDebugDisplayDoc::process_parameters()
+{
 // process any parameters
 	while (NextElement(ele_key))
 	{
@@ -1049,7 +1055,7 @@ void TDebugDisplayDoc::Update_scope ()
 				m_ch[vIndex-1].vHigh = m_val;
 			else
 				continue;
-			if (NextElement(ele_num))
+			if ( NextElement(ele_num))
 				m_ch[vIndex-1].vLow = m_val;
 			else
 				continue;

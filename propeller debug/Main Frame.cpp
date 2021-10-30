@@ -33,12 +33,6 @@
 #define new DEBUG_NEW
 #endif
 
-class debug_stream
-{
-public:
-	node_list<char*> N;
-};
-
 CString CMainFrame::getCurrentTime ()
 {
 	CString strTime;
@@ -87,7 +81,7 @@ static UINT indicators[] =
 CMainFrame::CMainFrame()
 {
 	// TODO: add member initialization code here
-	m_debugstr = new debug_stream;
+	m_frame->m_debugstr = new debug_stream;
 	lframe::set_global();
 	command_proc::pFrame = m_frame;
 	command_proc::reset_debug_symbols();
@@ -195,39 +189,14 @@ LRESULT CMainFrame::OnRxSerialString (WPARAM w, LPARAM l)
 {
 	LRESULT res;
 	res = 0;
-	char *continuation, *old;
 	CDebugFrame *pFrame = (CDebugFrame*)MDIGetActive ();
 	if (pFrame==NULL) {
 		return -1;
 	}
 	CView *pView = (CView *)pFrame->GetActiveView ();
 	CTerminalDoc *pDoc =  (CTerminalDoc*) pView->GetDocument ();
-	node<char*> *packet1, *packet2;
-	packet1 = new node<char*>(strdup((char*)w));
-	m_debugstr->N.concat(packet1);
-	m_debugstr->N.m_nPos=m_debugstr->N.m_nEnd;
-	size_t i, j;
-	j = strlen(packet1->m_pData);
-	int fragments = 0;
-// find new line characters and split the strings at those
-// points
-	for(i=0;i<j;i++)
-	{
-		if (packet1->m_pData[i]==13)
-		{
-			fragments++;
-			continuation = &(packet1->m_pData[i]);
-			packet2 = new node<char*>(strdup((char*)continuation));
-			m_debugstr->N.concat(packet2);
-			packet1->m_pData[i]=0;
-			old = packet1->m_pData;
-			packet1->m_pData=strdup(old);
-			delete [] old;
-			packet1 = packet2;
-			packet2 = NULL;
-		}
-	}
-	LPARAM l2 = (LPARAM)m_debugstr;
+	
+	LPARAM L2 = lframe::preprocess_data ((char*)w);
 	command_proc::parse_debug_string();
 //	send parsed message to correct view. 
 	pView->PostMessage (WM_UPDATE_TEXT,w,l);

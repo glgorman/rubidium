@@ -205,6 +205,7 @@ private:
 	bool plot_xy (int *, int);
 	void render_scope(int i);
 	void configure_scope();
+	void process_parameters();
 	void Configure_plot();
 	void Configure_term();
 	void Configure_scope_xy();
