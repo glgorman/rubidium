@@ -18,8 +18,8 @@ node<char*>::node<char*> ()
 node<char*>::node<char*> (char* str)
 {
 	refCount = 1;
-	m_pNext = NULL;
 	m_pData = str;
+	m_pNext = NULL;
 }
 
 node<char*>::~node<char*> ()
@@ -49,7 +49,8 @@ node_list<char*>::~node_list<char*> ()
 	}
 }
 
-node_list<char*>::node_list<char*> (char *data)
+
+node_list<char*>::node_list<char*> (char *data, bool)
 {
 	refCount = 1;
 	if (data==NULL)
@@ -86,14 +87,14 @@ void node_list<char*>::concat(node<char*> *N)
 
 #define copyToBuffer	do { buffer [n++] = theText [start++]; } while(0)
 
-template <class nodeType>
-node_list<nodeType>::node_list<nodeType> (nodeType theText)
+//template <class nodeType>
+node_list<char*>::node_list<char*> (char* theText)
 {
 	refCount = 1;
 	m_nBegin = NULL;
 	m_nEnd = NULL;
 	int length, start = 0;
-	nodeType buffer = NULL;
+	char* buffer = NULL;
 	if (theText!=NULL) {
 		length = strlen (theText);
 		buffer = new char [length+1];
@@ -107,19 +108,19 @@ node_list<nodeType>::node_list<nodeType> (nodeType theText)
 
 //	tokenize if alphebetic
 		if (isalpha(theText[start])) do {
-			copyToBuffer
+			copyToBuffer;
 		}	
 		while (isalpha(theText[start]));
 
 //	else tokenize numeric
 		else if (isdigit(theText[start])) do {
-			copyToBuffer
+			copyToBuffer;
 		}
 		while (isdigit(theText[start]));
 
 //	else any other printing chars
 		else if (theText[start]!=0) do {
-			copyToBuffer 
+			copyToBuffer;
 		}
 		while ((!isalnum(theText[start]))
 			&&(theText[start]!=0)
@@ -127,7 +128,7 @@ node_list<nodeType>::node_list<nodeType> (nodeType theText)
 			&&(theText[start]!='\n'));
 		buffer [n]=0;
 		if (*buffer!=0)
-			appendNode (buffer);
+			append_node (buffer);
 	}
 	delete [] buffer;
 }
@@ -238,7 +239,32 @@ void node_list<nodeType>::attachWord (s_node<nodeType,enum language> *theWord)
 	}
 }
 
+node<char*> &node_list<char *>::operator >> (char *(&ptr))
+{
+	int created, needed;
+	node<char*> *nodeptr = m_nBegin;
+	char *buffer = NULL;
+	needed = 0;
+	while (nodeptr!=NULL) {
+		int sz1 = strlen (nodeptr->m_pData)+1;
+		needed = needed+sz1;
+		nodeptr = nodeptr->m_pNext;
+	}
+	buffer = new char [needed+1];
+	strcpy (buffer,"");
+	nodeptr = m_nBegin;
+	while (nodeptr!=0) {
+//		if (nodeptr->check (nodeptr->m_pData)!=delimiter)
+		strcat (buffer," ");
+		strcat (buffer,nodeptr->m_pData);
+		nodeptr = nodeptr->m_pNext;
+	}
+	created = strlen (buffer);
+	ptr = buffer;
+	return *m_nBegin;
+}
 
+#if 0
 node<char*> &node_list<char *>::operator >> (char *(&ptr))
 {
 	ASSERT(false);
@@ -248,15 +274,17 @@ node<char*> &node_list<char *>::operator >> (char *(&ptr))
 	m_nPos = m_nPos->m_pNext;
 	return (*m_nPos);
 }
-
+#endif
 
 template <class nodeType>
-void node_list<nodeType>::appendNode (nodeType theWord)
+void node_list<nodeType>::append_node (nodeType str)
 {
-	s_node<nodeType,enum language> *thebuffer;
-	if (theWord!=NULL) if (theWord [0]!=0) {
-		thebuffer = new s_node<nodeType,enum language> (theWord);
-	//	attachWord (thebuffer);
+	node<nodeType> *nodeptr;
+	char *symbol;
+	if (str!=NULL) if (str [0]!=0) {
+		symbol = strdup(str);
+		nodeptr = new node<nodeType> (symbol);
+		concat (nodeptr);
 	}
 }
 
@@ -266,7 +294,7 @@ void node_list<nodeType>::appendNode (nodeType theWord)
 //	node_list<nodeType>
 
 template <class nodeType>
-void node_list<nodeType>::appendList (node_list<nodeType> *m_nList)
+void node_list<nodeType>::append_list (node_list<nodeType> *m_nList)
 {
 //s_node<nodeType,enum language> *position;
 

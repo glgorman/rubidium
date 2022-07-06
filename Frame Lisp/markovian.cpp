@@ -17,7 +17,7 @@ extern fstream debugOut, preIndex;
 //	of a symbol_table.  Takes a fixed number of words from a
 //	textImage and creates the initial snippet.
 
-//	mStream objects are currently derived from textObjects
+//	mStream objects are currently derived from text_objects
 //	maybe this should be changed since there is a definite
 //	goal to genaralize this code to other types of data
 //	structures, i.e. probably should be using the node_list
@@ -29,7 +29,7 @@ mStream::mStream (int length1, text_object &theImage)
 	int length = length1, i = 0;
 	theImage.rewind ();
 	while ((theImage.m_bEnd==false)&&(i<length)) {
-		theImage.getIndexWord (buffer);
+		theImage.get (buffer);
 		append (buffer);
 		i++; }
 }
@@ -64,7 +64,7 @@ void mStream::indexWordList (bTreeType<char*> *theTree)
 	theBranch = theBranch->getNode (thisWord);
 	rewind ();
 	while (m_bEnd==false) {
-		getIndexWord (nextWord);
+		get (nextWord);
 		if (theBranch->markovian==NULL) {	
 			theBranch->linkNode (nextWord);
 			theBranch = theBranch->markovian;

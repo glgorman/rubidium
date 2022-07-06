@@ -15,7 +15,6 @@
 #define imageFolder "imageFiles\\"
 
 #define order 8
-#define spagettiConstant 20
 
 //#define useSerial true
 //#define reportExceptions true

@@ -119,7 +119,7 @@ void convertText2Num (text_object &theObject)
 	while (theObject.m_bEnd==false) {
 		theNode = theObject.m_nPos;
 		convertNums (theNode);
-		theObject.getIndexWord (ascii);
+		theObject.get (ascii);
 	}
 #endif
 };
@@ -132,7 +132,7 @@ bool tellTime (text_object &theInput)
 	bool result = false;
 	theInput.rewind ();
 	while (theInput.m_bEnd==false) {
-		theInput.getIndexWord (ascii);
+		theInput.get (ascii);
 		if (strcmp (ascii,"time")==0)
 			time = true;
 		else if (strcmp (ascii,"what")==0) {
@@ -159,7 +159,7 @@ void message (char *caption,text_object &text)
 	text.rewind ();
 	DEBUG_STR << caption;
 	while (text.m_sList.m_pNext!=NULL) {
-		text.getIndexWord (ascii);
+		text.get (ascii);
 		DEBUG_STR << ascii << " "; }
 	DEBUG_STR << "\n";
 	DEBUG_STR.flush (); 

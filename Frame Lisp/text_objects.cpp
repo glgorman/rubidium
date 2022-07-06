@@ -22,10 +22,12 @@ bool isNum (char theChar)
 
 text_object::text_object ()
 {	
+	m_code_page = 437;
+	m_bEnd = true;
+	m_nPos = NULL;
 	m_nList.m_nBegin = NULL;
 	m_nList.m_nEnd = NULL;
 	m_nList.m_nPos = NULL;
-	m_bEnd = true;
 	m_sList.m_pData = NULL;
 	m_sList.m_pNext = NULL;
 }
@@ -37,20 +39,40 @@ text_object::text_object (node_list<char*> *copyFrom)
 }
 
 //	construct a text_object by sharing a node_list<char*> with the source text
-//	object using reference counting	to keep track of the number of textObjects
+//	object using reference counting	to keep track of the number of text_objects
 //	sharing the node_list<char*>.  This is the routine that is called when
 //	passing a text object as a parameter to another function.	
 
-text_object::text_object (text_object &copy)
+text_object::text_object (const text_object &copy)
 {
 //	wordCount = copy.wordCount;
 	m_nList.m_nBegin = copy.m_nList.m_nBegin;
 	m_nList.m_nEnd = copy.m_nList.m_nEnd;
 	m_nList.m_nPos = copy.m_nList.m_nPos;
-
+	m_nPos = copy.m_nPos;
 //	copy.m_sList.refCount++;
 //	if (m_nPos==NULL)
 	m_bEnd=true;
+}
+
+//	Construct a new text_object by
+//	tokenizing an input char string
+
+text_object::text_object (char *str)
+{
+	tokenize(str);
+}
+
+void text_object::operator = (char *str)
+{
+	tokenize(str);
+}
+
+node<char*> *text_object::begin()
+{
+	node<char*> *n;
+	n = m_nList.m_nBegin;
+	return n;
 }
 
 //	detach from any node_list<char*> that this
@@ -58,41 +80,36 @@ text_object::text_object (text_object &copy)
 //	and then convert a string to this
 //	text_object;
 
-void text_object::operator = (char *arg)
+void text_object::tokenize (char *arg)
 {
 	critical.Lock ();
+	node_list<char*> *n;
+	n = new node_list<char*> (arg);
 	detatch ();
 	if (arg!=NULL) {
-		m_nList.m_nPos = m_nList.m_nBegin;
+		m_nList.m_nBegin = n->m_nBegin;
+		m_nList.m_nPos = n->m_nBegin;
+		m_nList.m_nEnd = n->m_nBegin;
+		m_nPos = m_nList.m_nBegin;
 		if (m_nList.m_nPos!=NULL)
 			m_bEnd = false;
 		else
 			m_bEnd = true;
-		m_nList.m_nPos = m_nList.m_nBegin;
-		m_bEnd = true;
 	}
 	else
-		m_nList.m_nPos = NULL;
-	critical.Unlock ();
-}
-
-//	Construct a new text_object by
-//	tokenizing an input char string
-
-text_object::text_object (char *m_pText)
-{
-	if (m_pText==NULL) {
+	{
 		m_nList.m_nBegin = NULL;
 		m_nList.m_nEnd = NULL;
-		m_bEnd = true; }
-	else {
-		m_nList.m_nPos = m_nList.m_nBegin;
-		m_nList.m_nPos->m_pData = m_pText;
-		if (m_nList.m_nPos!=NULL)
-			m_bEnd = false;
-		else
-			m_bEnd = true;
+		m_nList.m_nPos = NULL;
+		m_nPos = NULL;
+		m_bEnd = true;
 	}
+	n->m_nBegin = NULL;
+	n->m_nEnd = NULL;
+	n->m_nPos = NULL;
+	delete n;
+	
+	critical.Unlock ();
 }
 
 
@@ -127,18 +144,18 @@ void text_object::detatch ()
 
 void text_object::rewind ()
 {
+	m_bEnd = true;
 	m_nList.m_nPos = m_nList.m_nBegin;
-	if (m_nList.m_nPos!=NULL)
+	m_nPos = m_nList.m_nPos;
+	if (m_nPos!=NULL)
 		m_bEnd = false;
-	else
-		m_bEnd = true;
 }
 
 //	save the m_nPos; rewind the node_list<char*>
 //	and then count the sNodes in the list
 //	then restore the m_nPos ...
 
-void text_object::countWords (int &count)
+void text_object::count_words (int &count)
 {
 	char *dummy;
 	critical.Lock ();
@@ -147,7 +164,7 @@ void text_object::countWords (int &count)
 	int wordCount = 0;
 	rewind ();
 	while (m_bEnd==false) {
-		getIndexWord (dummy);
+		get (dummy);
 		wordCount++;
 	}
 	m_nList.m_nPos = refTag.m_nPos;
@@ -166,12 +183,16 @@ void text_object::countWords (int &count)
 node_list<char*> *text_object::duplicate ()
 {
 	critical.Lock ();
-	node_list<char*> *copyList;
-	copyList = new node_list<char*> ();
-	copyList->m_nBegin = m_nList.m_nBegin;
-	copyList->m_nEnd = m_nList.m_nEnd;
-	copyList->m_nPos = m_nList.m_nPos;
-	ASSERT(false);
+	node<char*> *nodeptr1;
+	node_list<char*> *copyList = new node_list<char*> ();
+	if (m_nList.m_nBegin==NULL)
+		return copyList;
+	nodeptr1 = m_nList.m_nBegin;
+	while (nodeptr1!=NULL)
+	{
+		copyList->append_node (nodeptr1->m_pData);
+		nodeptr1 = nodeptr1->m_pNext;
+	}
 	critical.Unlock ();
 	return copyList;
 }
@@ -252,15 +273,22 @@ void text_object::append (s_node<char*, enum language> *theWord)
 //	usually that means that we are copying from a
 //	temporary buffer somewhere!
 
-void text_object::append (char *theWord)
+void text_object::append (char *str)
 {
-	if (theWord!=NULL) 
-	{
-		s_node<char*, enum language> *theLink = new s_node<char*, enum language>;
-		theLink->m_pData = strdup(theWord);
+	if (str==NULL)
+		return;
 
-		append (theLink);
+	node<char*> *nodeptr1, *nodeptr2;
+	nodeptr1 = new node<char*>();
+	nodeptr1->m_pData = strdup(str);
+	if (m_nList.m_nBegin==NULL) {
+		m_nList.m_nBegin = nodeptr1;
 	}
+	else if (m_nList.m_nEnd!=NULL) {	
+		nodeptr2 = m_nList.m_nEnd;
+		nodeptr2->m_pNext = nodeptr1;
+	}
+	m_nList.m_nEnd = nodeptr1;
 }
 
 //	attach to a duplicate of this node_list<char*>
@@ -279,11 +307,16 @@ void text_object::append (text_object &source)
 #if 0
 	m_nList.appendList (addOn);
 #endif
-	ASSERT(false);
-		m_nList.refCount = 1;
+
+	m_nList.refCount = 1;
 	if (m_nList.m_nPos==NULL)
 		m_nList.m_nPos = m_nList.m_nBegin;
 	m_bEnd = false;
+	m_nList.m_nEnd->m_pNext = addOn->m_nBegin;
+	m_nList.m_nEnd = addOn->m_nEnd;
+	addOn->m_nBegin = NULL;
+	addOn->m_nEnd = NULL;
+	delete addOn;
 	critical.Unlock ();
 }
 
@@ -342,7 +375,7 @@ void text_object::truncate ()
 	garbage.m_nBegin = stop;
 	rewind ();
 	while (m_nList.m_nPos!=stop)
-		getIndexWord (dummy);
+		get (dummy);
 	m_nList.m_nPos->m_pNext=NULL;
 }
 
@@ -363,7 +396,7 @@ void text_object::peek (char *(&result))
 //	the line will cause a null pointer
 //	to char to be returned!!
 
-void text_object::getIndexWord (char *(&result))
+void text_object::get (char *(&result))
 {
 	critical.Lock ();
 	result = NULL;
@@ -377,7 +410,7 @@ void text_object::getIndexWord (char *(&result))
 	critical.Unlock ();
 }
 
-char *text_object::getIndexWord (language &theType)
+char *text_object::get (language &theType)
 {
 	critical.Lock ();
 	char *result = NULL;
@@ -414,7 +447,7 @@ node<char*> *text_object::findPenultimate (char *(&found))
 		while (m_nList.m_nPos!=NULL) {
 			prevNode = thisNode;
 			thisNode = m_nList.m_nPos;
-			getIndexWord (dummy);
+			get (dummy);
 		}
 		m_nList.m_nPos = prevNode;
 		found = m_nList.m_nPos->m_pData;
@@ -523,7 +556,7 @@ text_object text_object::getSentence ()
 //	from the current position.
 
 
-bool text_object::findKeyWord (key_list &keyWords)
+bool text_object::find_keyword (key_list &key_words)
 {
 	critical.Lock ();
 	bool foundOne=false;
@@ -540,16 +573,16 @@ bool text_object::findKeyWord (key_list &keyWords)
 		marker = m_nList.m_nBegin;
 	else
 		marker = m_nList.m_nPos;
-	keyWords.rewind ();
-	if (keyWords.m_bEnd==true)
+	key_words.rewind ();
+	if (key_words.m_bEnd==true)
 		return false;
 	while (foundOne==false) {
 		if (m_bEnd==true)
 			break;
-		getIndexWord (ascii);
-		keyWords.rewind ();
-		while (keyWords.m_bEnd==false) {	
-			keyWords.getIndexWord (theWord);
+		get (ascii);
+		key_words.rewind ();
+		while (key_words.m_bEnd==false) {	
+			key_words.get (theWord);
 			if (strcmp (ascii,theWord)==0) {
 				foundOne = true;
 				break; }				

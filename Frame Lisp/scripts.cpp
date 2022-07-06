@@ -441,7 +441,7 @@ void script::saveImageFile ()
 	theImage.rewind ();
 	while (theImage.m_bEnd==false)
 	{
-		buffer = theImage.getIndexWord (theType);
+		buffer = theImage.get (theType);
 		if (theType!=delimiter)
 			theFile << " ";
 		theFile << buffer;		
@@ -473,7 +473,7 @@ void script::saveKeyFile ()
 	theImage.rewind ();
 	while (theImage.m_bEnd==false)
 	{
-		buffer = theImage.getIndexWord (theType);
+		buffer = theImage.get (theType);
 		if (buffer==NULL)
 			break;
 		if (theType==delimiter)

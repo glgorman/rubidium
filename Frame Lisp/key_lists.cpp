@@ -31,7 +31,7 @@ key_list::key_list (text_object &theInput)
 	char *ascii;
 	theInput.rewind ();
 	while (theInput.m_bEnd==false) {
-		theInput.getIndexWord (ascii);
+		theInput.get (ascii);
 //	m_typeid = temp.check (ascii);
 		if (m_typeid==unknown)
 			append (ascii); }

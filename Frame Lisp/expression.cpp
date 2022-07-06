@@ -193,7 +193,7 @@ fraction mathObj::evaluate (text_object program)
 	operation token;
 	program.rewind ();
 	while (program.m_bEnd==false) {
-		program.getIndexWord (ascii);
+		program.get (ascii);
 		token = detect (ascii);
 		if (token==symbol) {
 			stack [n] = atol (ascii);
@@ -236,7 +236,7 @@ text_object mathObj::alg2polish (text_object theInput)
 // Start scanning the algebraic expression 
 	
 	theInput.rewind ();
-	theInput.getIndexWord (theToken);
+	theInput.get (theToken);
 	token = detect (theToken);
  
 //	handle negative number at beginning of
@@ -255,7 +255,7 @@ text_object mathObj::alg2polish (text_object theInput)
 		if (token==left) {
 			text_object temp;
 			while (token!=right) {
-				theInput.getIndexWord (theToken);
+				theInput.get (theToken);
 				if (theToken==NULL)
 					break;
 				token = detect (theToken);
@@ -287,7 +287,7 @@ text_object mathObj::alg2polish (text_object theInput)
 				push (deferred);
 			pending = token; 
 		}
-		theInput.getIndexWord (theToken);
+		theInput.get (theToken);
 		token = detect (theToken);
 		if (token==right)
 			break;

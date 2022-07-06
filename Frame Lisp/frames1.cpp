@@ -18,11 +18,17 @@ bTreeType<char*> *m_root;
 
 frame theFrame;
 frame *lframe::m_pFrame = NULL;
-debug_stream *lframe::m_debugstr = NULL;
 
 void lframe::set_global ()
 {
 	m_pFrame = &theFrame;
+}
+
+void lframe::load_binary_file (char *fname)
+{
+	CString msg;
+	msg.Format(_T("The Unicorn is in the Garden!%s"),fname);
+	AfxMessageBox(msg,IDOK);
 }
 
 #define threadRipText
@@ -152,7 +158,7 @@ UINT load_file_image (LPVOID param)
 #endif
 //	releaseConsole;
 	theScript->load_file_image (NULL);
-	theScript->theImage.countWords (wordCount);
+	theScript->theImage.count_words (wordCount);
 	theScript->close_output_file ();
 //	waitForConsole
 #ifdef HAS_CONSOLE
@@ -527,10 +533,10 @@ void frame::buildMarkov (text_object &theImage, bTreeType<char*> *theTree)
 		theExcerpt.indexWordList (theTree);
 #ifdef keysOnly
 		do
-			buffer = theImage.getIndexWord (m_typeid);
+			buffer = theImage.get (m_typeid);
 		while	((m_typeid!=unknown)&&(theImage.m_bEnd!=true));
 #else
-		buffer = theImage.getIndexWord (m_typeid);
+		buffer = theImage.get (m_typeid);
 #endif
 		if (buffer!=NULL) {
 			theExcerpt.append (buffer);
@@ -595,7 +601,7 @@ UINT ripText (LPVOID param)
 	extractorTag *the = (extractorTag*)(param);
 	script *theScript = the->Script;
 	text_object theImage = theScript->theImage;
-	foundOne = theImage.findKeyWord ((*the->keyWords));
+	foundOne = theImage.find_keyword ((*the->keyWords));
 	if (foundOne==false) {
 #if 0
 		marker = theImage.m_nList;

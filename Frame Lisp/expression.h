@@ -4,7 +4,7 @@
 namespace FRACTIONS
 {
 //class wordList;
-//class textObject;
+//class text_object;
 char *long2Text (long argument);
 
 class fraction

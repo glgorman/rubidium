@@ -68,6 +68,7 @@ public:
 	node<Type> *m_nPos;
 
 	node_list ();
+	node_list (Type m_pText, bool);
 	node_list (Type m_pText);
 	node_list (bTreeType<Type> **source);
 	~node_list ();
@@ -81,8 +82,8 @@ public:
 
 	void putTempWord (char *theWord);
 	void concat(node<Type>*);
-	void appendNode (Type);
-	void appendList (node_list*);
+	void append_node (Type);
+	void append_list (node_list*);
 	void transferFrom (node_list*);
 	void transferTo (node_list*);
 
