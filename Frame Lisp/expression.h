@@ -17,6 +17,7 @@ private:
 public:
 	fraction ();
 	fraction (int);
+	fraction(int, int);
 	fraction (MATH_TYPE);
 	bool operator != (int arg);
 	long numerator;

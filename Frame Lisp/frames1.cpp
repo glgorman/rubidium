@@ -52,14 +52,17 @@ template<class nodeType>
 bTreeType<nodeType>::bTreeType  (script *theScript)
 {
 	theScript->m_index.owner = false;
+#if 0
 #ifdef debug
 	strcpy (m_tagid,"bTreeRoot");
 #endif
+#endif
+
 	m_pData = NULL;	
 	bTreeType<nodeType> *theNode;
 	int wordNum, needed = theScript->m_index.size();
 	char *aNode;
-	root = markovian = branch1 = branch2 = NULL;
+	root = markov = branch1 = branch2 = NULL;
 	if (theScript->m_index._symbols.size()==0)
 		return;
 
@@ -273,7 +276,7 @@ bTreeType<char*> *frame::make_tree ()
 {
 	bTreeType<char*> *p_tree;
 	common.m_index.owner = false;
-	p_tree = new bTreeType<char*> (&common);
+	p_tree = new (NULL) bTreeType<char*> (&common);
 	return p_tree;
 }
 

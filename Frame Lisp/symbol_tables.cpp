@@ -58,8 +58,8 @@ symbol_table::~symbol_table ()
 bool symbol_table::compare (token item1, token item2)
 {
 	char buffer1 [MAX_BUFFER], buffer2 [MAX_BUFFER];
-	strcpy (buffer1,item1.ascii);
-	strcpy (buffer2,item2.ascii);
+	strcpy_s (buffer1,MAX_BUFFER,item1.ascii);
+	strcpy_s (buffer2,MAX_BUFFER,item2.ascii);
 	to_lower (buffer1);
 	to_lower (buffer2);
 	if	((item1.m_count<item2.m_count)

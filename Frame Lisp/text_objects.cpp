@@ -20,6 +20,30 @@ bool isNum (char theChar)
 }
 #endif
 
+pstring &pstring::operator = (char *ptr)
+{
+	if (ptr!=NULL)
+		strcpy_s(str,256,ptr);
+	else
+		memset (str,0,256);
+	return (*this);
+}
+
+void *pstring::operator new (size_t sz1,void* ptr2)
+{
+	size_t sz2;
+	sz2 = sizeof(pstring);
+	pstring *ptr;
+	if (ptr2==NULL)
+	{
+		ptr = (pstring*) malloc (sz2);
+	}
+	else
+		ptr = (pstring*) ptr2;
+	memset (ptr->str,0,256);
+	return (void*) ptr;
+}
+
 text_object::text_object ()
 {	
 	m_code_page = 437;
@@ -403,6 +427,7 @@ void text_object::get (char *(&result))
 	if (m_nList.m_nPos!=NULL) {
 		result = m_nList.m_nPos->m_pData;
 		m_nList.m_nPos = m_nList.m_nPos->m_pNext;
+		m_nPos = m_nList.m_nPos;
 		if (m_nList.m_nPos==NULL)
 			m_bEnd = true; }
 	else

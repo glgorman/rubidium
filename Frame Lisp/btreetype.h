@@ -12,15 +12,29 @@ extern bTreeType<char*> *m_root;
 #pragma warning (disable: 4812)
 #pragma warning (disable: 4996)
 
+class pstring
+{
+private:
+	char str[256];
+
+public:
+	pstring() { memset(this,0,256); }
+	pstring &operator = (char*);
+	void *operator new (size_t,void*);
+	
+};
+
 template <class X> 
 class bTreeType 
 {
+#if 0
 #ifdef debug
 	char m_tagid [10];
 #endif 
+#endif
 
 public:
-	bTreeType *root,*branch1,*branch2,*markovian;
+	bTreeType *root,*branch1,*branch2,*markov;
 	X m_pData;
 
 	bTreeType (script*);
@@ -28,6 +42,7 @@ public:
 	bTreeType (X, bool allocate);
 	bTreeType ();
 	~bTreeType ();
+	void *bTreeType<X>::operator new (size_t,void*);
 
 	bTreeType *getNode (X);
 	bTreeType *findNode (X);
@@ -64,33 +79,52 @@ public:// obselete and problematic code
 	void linkNode (X theWord);
 };
 
+template<class X>
+void *bTreeType<X>::operator new (size_t sz1,void* ptr2)
+{
+	size_t sz2;
+	sz2 = sizeof(bTreeType<X>);
+	bTreeType<X> *ptr;
+	if (ptr2==NULL)
+	{
+		ptr = (bTreeType<X>*) malloc (sz2);
+		return ptr;
+	}
+	else
+		return ptr2;
+}
 //	Simple constructor that transfers the number of times
 //	that a Node has been seen, i.e. from an index object
  
 template<class X>
 bTreeType<X>::bTreeType<X> (X arg, int count)
 {
+#if 0
 #ifdef debug
 	strcpy (m_tagid,"bTreeNode");
+#endif
 #endif
 	m_pData = arg;
 	root = NULL;
 	branch1 = NULL;
 	branch2 = NULL;
-	markovian = NULL;
+	markov = NULL;
 }
 
 template<class X>
 bTreeType<X>::bTreeType<X> (void)
 {
+#if 0
 #ifdef debug
 	strcpy (m_tagid,"bTreeNode");
 #endif
+#endif
+
 	m_pData = 0;
 	root = NULL;
 	branch1 = NULL;
 	branch2 = NULL;
-	markovian = NULL;
+	markov = NULL;
 }
 
 //	#define allocateNodes 1
@@ -102,9 +136,12 @@ bTreeType<X>::bTreeType<X> (void)
 template<class X>
 bTreeType<X>::bTreeType<X> (X arg, bool allocate)
 {
+#if 0
 #ifdef debug
 	strcpy (m_tagid,"bTreeNode");
 #endif
+#endif
+
 	if (allocate==true) {
 		m_pData = new char [strlen(arg)+1];
 		strcpy (m_pData,arg); }
@@ -113,7 +150,7 @@ bTreeType<X>::bTreeType<X> (X arg, bool allocate)
 	root = NULL;
 	branch1 = NULL;
 	branch2 = NULL;
-	markovian = NULL;
+	markov = NULL;
 }
 
 //	navigate through a tree and nullify all references
@@ -158,10 +195,10 @@ bTreeType<X>::~bTreeType<X> (void)
 	if (branch2!=NULL) {
 		delete branch2;
 		branch2=NULL; }
-	if (markovian!=NULL) {
-		delTree (markovian);
-		delete markovian;
-		markovian=NULL; }
+	if (markov!=NULL) {
+		delTree (markov);
+		delete markov;
+		markov=NULL; }
 }
 
 //	recursive findNode routine.  Tries to find a
@@ -209,11 +246,11 @@ bTreeType<X> *bTreeType<X>::addNode (X arg)
 	test = compare (arg,m_pData);
 	try {
 	if ((test<0)&&(branch1==NULL)) {
-		branch1 = new bTreeType (arg,false);
+		branch1 = new (NULL) bTreeType (arg,false);
 		branch1->root = this;
 		path = branch1; }
 	else if ((test>0)&&(branch2==NULL)) {
-		branch2 = new bTreeType (arg,false);
+		branch2 = new (NULL) bTreeType (arg,false);
 		branch2->root = this;
 		path = branch2; }
 	else if (test!=0) {
@@ -477,7 +514,7 @@ int bTreeType<X>::countNodes ()
 	return loopCount;
 }
 
-//	used to find the root node of a markovian whose
+//	used to find the root node of a markov whose
 //	penultimate/pred token is the same as theWord
 
 template<class X>
@@ -486,7 +523,7 @@ bTreeType<X> *bTreeType<X>::findMarkovian (X theWord)
 	bTreeWord *rootNode, *m_pNext = NULL;
 	if (theWord!=NULL) {
 		rootNode = m_root->findNode (theWord);
-		m_pNext = rootNode->markovian;
+		m_pNext = rootNode->markov;
 	}
 	return m_pNext;
 }
