@@ -133,17 +133,17 @@ char *long2Text (long argument)
 	return result;
 }
 
-mathObj::mathObj ()
+math_object::math_object ()
 {
 	result = new text_object;
 }
 
-mathObj::~mathObj ()
+math_object::~math_object ()
 {
 	delete result;
 }
 
-operation mathObj::detect (char *theToken)
+operation math_object::detect (char *theToken)
 {
 	operation result;
 	if (theToken==NULL)
@@ -168,7 +168,7 @@ operation mathObj::detect (char *theToken)
 	return result;
 }
 
-fraction mathObj::calculate (fraction arg1, fraction arg2, operation opCode)
+fraction math_object::calculate (fraction arg1, fraction arg2, operation opCode)
 {
 	fraction result;
 	if (opCode==add)
@@ -184,13 +184,13 @@ fraction mathObj::calculate (fraction arg1, fraction arg2, operation opCode)
 	return result;
 }
 
-fraction mathObj::evaluate (text_object program)
+fraction math_object::evaluate (text_object program)
 {
 	char *ascii;
 	fraction stack [8];
 	fraction arg1, arg2, result = 0;
 	int n = 0;
-	operation token;
+	operation token; 
 	program.rewind ();
 	while (program.m_bEnd==false) {
 		program.get (ascii);
@@ -208,30 +208,31 @@ fraction mathObj::evaluate (text_object program)
 	return result;
 }
 
-void mathObj::push (operation &the)
+void math_object::push (operation &opcode)
 {
-	if (the==add)
+	if (opcode==add)
 		result->append ("+");
-	else if (the==subtract)
+	else if (opcode==subtract)
 		result->append ("-");
-	else if (the==multiply)
+	else if (opcode==multiply)
 		result->append ("*");
-	else if (the==divide)
+	else if (opcode==divide)
 		result->append ("/");
-	else if (the==left)
+	else if (opcode==left)
 		result->append ("(");
-	else if (the==right)
+	else if (opcode==right)
 		result->append (")");
-	the = none;
+
+	opcode = null;
 }
 
-text_object mathObj::alg2polish (text_object theInput)
+text_object  math_object::alg2polish (text_object theInput)
 {
 	char *theToken;
 	operation pending, deferred, token;
 	bool set_exit = false;	
-	pending = none;
-	deferred = none;
+	pending = null;
+	deferred = null;
 	
 // Start scanning the algebraic expression 
 	
@@ -273,7 +274,7 @@ text_object mathObj::alg2polish (text_object theInput)
 			||(token==modulus)) {								
 				if ((pending==add)||(pending==subtract))
 					deferred = pending;
-				else if (pending!=none)
+				else if (pending!=null)
 					push (pending);
 			pending=token; }
 
@@ -281,9 +282,9 @@ text_object mathObj::alg2polish (text_object theInput)
 //	until the next argument is obtained
 
 		else if ((token==add)||(token==subtract)) {			
-			if (pending!=none)
+			if (pending!=null)
 				push (pending);			
-			if (deferred!=none)
+			if (deferred!=null)
 				push (deferred);
 			pending = token; 
 		}
@@ -292,9 +293,9 @@ text_object mathObj::alg2polish (text_object theInput)
 		if (token==right)
 			break;
 	}
-	if (pending!=none)
+	if (pending!=null)
 		push (pending);
-	if (deferred!=none)
+	if (deferred!=null)
 		push (deferred);
 	return *result;
 }

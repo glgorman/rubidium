@@ -11,60 +11,179 @@
 //////////////////////////////////////////////////////
 
 #define MAX_SET (256)
-#define	SETSZ (MAX_SET>>5)
+//#define	SETSZ (MAX_SET>>5)
 
-class SET 
+#define SETOFCHAR SET<256>
+
+template<size_t SETSIZE>
+class _SET_
+{
+protected:
+	static const int SETSZ = (SETSIZE+(8*sizeof(DWORD)-1))/(8*sizeof(DWORD));
+	DWORD bits[SETSZ];
+};
+
+template<size_t SETSIZE>
+class SET: public _SET_<SETSIZE>
 {
 friend class SETOFSYS;
 friend class SETOFIDS;
-protected:
-	DWORD bits[SETSZ];
-
 public:
-	inline bool in(int s)
+	SET();
+	SET(size_t,...);
+	inline bool in(int s) const
 	{
 		bool result;
+		if ((s>=SETSZ<<5)||(s<0))
+			return false;
 		int i, j;
 		i = s>>5;
 		j = s&0x1f;
-		if ((bits[i])&(0x01<<j))
-			result = true;
-		else
-			result = false;
+		result = (((bits[i])&(0x01<<j))!=0?true:false);
 		return result;
 	};
-	virtual SET &UNION(const SET&);
-	virtual SET &INTERSECT(const SET&);
-	virtual SET &operator + (const SET &);
-	virtual SET &operator - (const SET &);
-	SET();
-	SET(int,...);
+	bool operator == (const SET &) const;
+	bool operator != (const SET &) const;
+	virtual SET UNION(const SET&) const;
+	virtual SET INTERSECT(const SET&) const;
+	virtual SET operator + (const SET &) const;
+	virtual SET operator - (const SET &) const;
 };
 
-namespace chartype
+namespace chartypes
 {
-	extern SET symbol;
-	extern SET digits;
-	extern	SET whitespace;
-	extern	SET alpha;
-	extern	SET punct1;
-	extern	SET operat;
+	extern SETOFCHAR ident;
+	extern SETOFCHAR digits;
+	extern SETOFCHAR whitespace;
+	extern SETOFCHAR alpha;
+	extern SETOFCHAR punct1;
+	extern SETOFCHAR operat;
 }
 
-class SETOFSYS: public SET 
+class SETOFSYS: public SET<128> 
 {
 public:
-	SETOFSYS &operator + (const int&);
-	SETOFSYS &operator + (const SETOFSYS&);
-	SETOFSYS &operator = (const SET&);
 	SETOFSYS();
 	SETOFSYS(const SET&);
+	SETOFSYS(size_t,...);
+	SETOFSYS &operator = (const SETOFSYS&);
+	SETOFSYS operator + (const SETOFSYS&) const;
+	SETOFSYS &operator += (int);
+	SETOFSYS &operator -= (int);
+	SETOFSYS operator + (int) const;
+	static SETOFSYS range (int low, int high);
+	void debug_list (char *str="") const;
 };
 
-class SETOFIDS: public SET 
+class SETOFIDS: public SET<128>
 {
 public:
-	SETOFIDS &operator = (const SET &);
 	SETOFIDS();
-	SETOFIDS(int,...);
+	SETOFIDS(const SETOFIDS&);
+	SETOFIDS(size_t,...);
+	SETOFIDS &operator = (const SETOFIDS&);
+	SETOFIDS operator + (const SETOFIDS&) const;
+	SETOFIDS operator + (int) const;
+	SETOFSYS &operator += (int);
+	void debug_list (char *str="") const;
 };
+
+template<size_t SETSIZE>
+SET<SETSIZE>::SET(size_t n, ...)
+{
+	size_t i,j,k;
+	int val;
+	va_list vl;
+	va_start(vl,n);
+	memset(bits,0,sizeof(DWORD)*SETSZ);
+	for (i=0;i<n;i++)
+	{
+		val=va_arg(vl,int);
+		j = val>>5;
+		k = val&0x1f;
+		bits[j]|=(1<<k);
+	}
+	va_end(vl);
+}
+
+template<size_t SETSIZE>
+SET<SETSIZE>::SET()
+{
+	memset(bits,0,sizeof(DWORD)*SETSZ);
+}
+
+template<size_t SETSIZE>
+bool SET<SETSIZE>::operator == (const SET &x) const
+{
+	bool result = true;
+	int i;
+	for (i=0;i<SETSZ;i++)
+	if (bits[i]!=x.bits[i])
+	{
+		result=false;
+		break;
+	}
+	return result;
+}
+
+template<size_t SETSIZE>
+bool SET<SETSIZE>::operator != (const SET &x) const
+{
+	bool result = false;
+	int i;
+	for (i=0;i<SETSZ;i++)
+	if (bits[i]!=x.bits[i])
+	{
+		result=true;
+		break;
+	}
+	return result;
+}
+
+template<size_t SETSIZE>
+SET<SETSIZE> SET<SETSIZE>::operator + (const SET &x) const
+{
+	SET result;
+	result = *this;
+	int i;
+	for (i=0;i<SETSZ;i++)
+		result.bits[i]|=x.bits[i];
+	return result;
+}
+
+template<size_t SETSIZE>
+SET<SETSIZE> SET<SETSIZE>::operator - (const SET &x) const
+{
+	SET result;
+	int i;
+	DWORD s1, s2;
+	for (i=0;i<SETSZ;i++)
+	{
+		s1 = bits[i];
+		s2 = ~(x.bits[i]);
+		result.bits[i]=s1&s2;
+	}
+	return result;
+}
+
+template<size_t SETSIZE>
+SET<SETSIZE> SET<SETSIZE>::UNION(const SET&S) const
+{
+	SET result;
+	result = *this;
+	int i;
+	for (i=0;i<SETSZ;i++)
+		result.bits[i]|=S.bits[i];
+	return result;
+}
+
+template<size_t SETSIZE>
+SET<SETSIZE> SET<SETSIZE>::INTERSECT(const SET&S) const
+{
+	SET result;
+	result = *this;
+	int i;
+	for (i=0;i<SETSZ;i++)
+		result.bits[i]&=S.bits[i];
+	return result;
+}

@@ -55,6 +55,14 @@ symbol_table::~symbol_table ()
 	}
 }
 
+token &symbol_table::operator [] (unsigned int entryNum)
+{
+	if (entryNum<_symbols.size())
+		return _symbols [entryNum];
+	else
+		throw entryNum;
+}
+
 bool symbol_table::compare (token item1, token item2)
 {
 	char buffer1 [MAX_BUFFER], buffer2 [MAX_BUFFER];
@@ -291,10 +299,3 @@ symbol_table symbol_table::merge (symbol_table another)
 	return theIndex;
 }
 
-token &symbol_table::operator [] (unsigned int entryNum)
-{
-	if (entryNum<_symbols.size())
-		return _symbols [entryNum];
-	else
-		throw entryNum;
-}

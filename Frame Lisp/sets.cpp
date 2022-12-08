@@ -8,32 +8,39 @@
 
 #include "stdafx.h"
 #include <stdarg.h>
+#include <vector>
+#include "intrinsics.h"
 #include "range.h"
 #include "sets.h"
 
-namespace chartype
+extern char *ID_NAMES1[];
+extern char *SYMBOL_NAMES1[];
+
+namespace chartypes
 {
-	SET symbol(63,'0','1','2','3','4','5','6','7','8','9','_',
+	SETOFCHAR ident(63,'0','1','2','3','4','5','6','7','8','9','_',
 		'A','B','C','D','E','F','G','H','I','J','K','L','M',
 		'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
 		'a','b','c','d','e','f','g','h','i','j','k','l','m',
 		'n','o','p','q','r','s','t','u','v','w','x','y','z');
-	SET digits(10,'0','1','2','3','4','5','6','7','8','9');
-	SET whitespace(4,' ','\t','\n','\r');
-	SET alpha(52,'A','B','C','D','E','F','G','H','I','J','K','L','M',
+	SETOFCHAR digits(10,'0','1','2','3','4','5','6','7','8','9');
+	SETOFCHAR hex(22,'0','1','2','3','4','5','6','7','8','9',
+		'A','B','C','D','E','F','a','b','c','d','e','f');
+	SETOFCHAR whitespace(4,' ','\t','\n','\r');
+	SETOFCHAR alpha(52,'A','B','C','D','E','F','G','H','I','J','K','L','M',
 		'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
 		'a','b','c','d','e','f','g','h','i','j','k','l','m',
 		'n','o','p','q','r','s','t','u','v','w','x','y','z');
-	SET punct1(12,'.',',',':','\\','"','\'','(',')','{','}','[',']');
-	SET operat(11,'+','-','*','/','%','|','~','=','&','>','<');
+	SETOFCHAR punct1(12,'.',',',':','\\','"','\'','(',')','{','}','[',']');
+	SETOFCHAR operat(11,'+','-','*','/','%','|','~','=','&','>','<');
 }
 
-SET::SET()
+
+SETOFSYS::SETOFSYS()
 {
-	memset(bits,0,sizeof(DWORD)*SETSZ);
 }
 
-SET::SET(int n, ...)
+SETOFSYS::SETOFSYS(size_t n, ...)
 {
 	int i,j,k,val;
 	va_list vl;
@@ -47,57 +54,6 @@ SET::SET(int n, ...)
 		bits[j]|=(1<<k);
 	}
 	va_end(vl);
-}
-
-SET &SET::operator + (const SET &x)
-{
-	int i;
-	for (i=0;i<SETSZ;i++)
-		bits[i]|=x.bits[i];
-	return (*this);
-}
-
-SET &SET::operator - (const SET &x)
-{
-	int i;
-	for (i=0;i<SETSZ;i++)
-		bits[i]&=(!x.bits[i]);
-	return (*this);
-}
-
-#if 0
-bool SET::in(int s)
-{
-	bool result;
-	int i, j;
-	i = s>>5;
-	j = s&0x1f;
-	if ((bits[i])&(0x01<<j))
-		result = true;
-	else
-		result = false;
-	return result;
-}
-#endif
-
-SET &SET::UNION(const SET&S)
-{
-	int i;
-	for (i=0;i<SETSZ;i++)
-		bits[i]|=S.bits[i];
-	return (*this);
-}
-
-SET &SET::INTERSECT(const SET&S)
-{
-	int i;
-	for (i=0;i<SETSZ;i++)
-		bits[i]&=S.bits[i];
-	return (*this);
-}
-
-SETOFSYS::SETOFSYS()
-{
 }
 
 SETOFSYS::SETOFSYS(const SET &x)
@@ -107,15 +63,28 @@ SETOFSYS::SETOFSYS(const SET &x)
 		bits[i]=x.bits[i];
 }
 
-SETOFSYS &SETOFSYS::operator + (const SETOFSYS &x)
+SETOFSYS SETOFSYS::operator + (const SETOFSYS &x) const
 {
+	SETOFSYS result;
+	result = *this;
 	int i;
 	for (i=0;i<SETSZ;i++)
-		bits[i]|=x.bits[i];
-	return (*this);
+		result.bits[i]|=x.bits[i];
+	return result;
 }
 
-SETOFSYS &SETOFSYS::operator + (const int &val)
+SETOFSYS SETOFSYS::operator + (int val) const
+{
+	SETOFSYS result;
+	result = *this;
+	int j, k;
+	j = val>>5;
+	k = val&0x1f;
+	result.bits[j]|=(1<<k);
+	return result;
+}
+
+SETOFSYS &SETOFSYS::operator += (int val)
 {
 	int j, k;
 	j = val>>5;
@@ -124,7 +93,19 @@ SETOFSYS &SETOFSYS::operator + (const int &val)
 	return (*this);
 }
 
-SETOFSYS &SETOFSYS::operator = (const SET &x)
+SETOFSYS &SETOFSYS::operator -= (int val)
+{
+	int j,k;
+	DWORD s1, s2;
+	j = val>>5;
+	k = val&0x1f;
+	s1 = bits[j];
+	s2 = ~(1<<k);
+	bits[j]=s1&s2;
+	return (*this);
+}
+
+SETOFSYS &SETOFSYS::operator = (const SETOFSYS &x)
 {
 	int i;
 	for (i=0;i<SETSZ;i++)
@@ -132,12 +113,36 @@ SETOFSYS &SETOFSYS::operator = (const SET &x)
 	return (*this);
 }
 
+SETOFSYS SETOFSYS::range (int low, int high)
+{
+	SETOFSYS result;
+	int i;
+	for (i=low;i<=high;i++)
+		result+=i;
+	return result;
+}
+
+void SETOFSYS::debug_list (char *str1) const
+{
+	int n;
+	char *str2;
+	size_t sz = SETSZ*sizeof(DWORD)*8; 
+	WRITE(OUTPUT,"SETOFSYS ",str1,": (");
+	for (n=0;n<sz;n++)
+	if (in(n))
+	{
+		str2 = SYMBOL_NAMES1[n];
+		WRITE (OUTPUT,str2,",");
+	}
+	WRITELN(OUTPUT,")");
+}
+
 SETOFIDS::SETOFIDS()
 {
 
 }
 
-SETOFIDS::SETOFIDS(int n,...)
+SETOFIDS::SETOFIDS(size_t n,...)
 {
 	int i,j,k,val;
 	va_list vl;
@@ -153,7 +158,33 @@ SETOFIDS::SETOFIDS(int n,...)
 	va_end(vl);
 }
 
-SETOFIDS &SETOFIDS::operator = (const SET &x)
+void SETOFIDS::debug_list (char *str1) const
+{
+	int n;
+	char *str2;
+	size_t sz = SETSZ*sizeof(DWORD)*8; 
+	WRITE(OUTPUT,"SETOFIDS ",str1,": (");
+	for (n=0;n<sz;n++)
+	if (in(n))
+	{
+		str2 = ID_NAMES1[n];
+		WRITE (OUTPUT,str2,",");
+	}
+	WRITELN(OUTPUT,")");
+}
+
+SETOFIDS SETOFIDS::operator + (int val) const
+{
+	SETOFIDS result;
+	result = *this;
+	int j, k;
+	j = val>>5;
+	k = val&0x1f;
+	result.bits[j]|=(1<<k);
+	return result;
+}
+
+SETOFIDS &SETOFIDS::operator = (const SETOFIDS &x)
 {
 	int i;
 	for (i=0;i<SETSZ;i++)
@@ -161,3 +192,19 @@ SETOFIDS &SETOFIDS::operator = (const SET &x)
 	return (*this);
 }
 
+SETOFIDS SETOFIDS::operator + (const SETOFIDS &x) const
+{
+	SETOFIDS result;
+	result = *this;
+	int i;
+	for (i=0;i<SETSZ;i++)
+		result.bits[i]|=x.bits[i];
+	return result;
+}
+
+SETOFIDS::SETOFIDS(const SETOFIDS &x)
+{
+	int i;
+	for (i=0;i<SETSZ;i++)
+		bits[i]=x.bits[i];
+}

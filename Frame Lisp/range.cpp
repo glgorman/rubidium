@@ -23,102 +23,69 @@ RANGE::RANGE(int min=0, int max=0x7FFFFFFF)
 }
 #endif
 
-RANGE::operator int()
-{
-	return val;
-}
-
-RANGE &RANGE::operator = (const int arg)
+JTABRANGE &JTABRANGE::operator = (int arg)
 {
 	val = arg;
-	ASSERT(val>=0);
 	return (*this);
 }
 
-RANGE &RANGE::operator ++ (int)
+CURSRANGE &CURSRANGE::operator = (int arg)
 {
-	val++;
+	val = arg;
 	return (*this);
 }
 
-RANGE &RANGE::operator -- (int)
+DISPRANGE &DISPRANGE::operator = (int arg)
 {
-	val--;
+	val = arg;
 	return (*this);
 }
 
-RANGE RANGE::operator + (int arg)
+ADDRRANGE &ADDRRANGE::operator = (int arg)
 {
-	RANGE result;
-	result.val=val+arg;
+	val = arg;
+	return (*this);
+}
+
+PROCRANGE &PROCRANGE::operator = (int arg)
+{
+	val = arg;
+	return (*this);
+}
+
+SEGRANGE &SEGRANGE::operator = (int arg)
+{
+	val = arg;
+	return (*this);
+}
+
+LEVRANGE &LEVRANGE::operator = (int arg)
+{
+	val = arg;
+	return (*this);
+}
+
+OPRANGE::OPRANGE ()
+{
+	val = 0;
+}
+
+OPRANGE::OPRANGE (int arg)
+{
+	val = arg;
+}
+
+OPRANGE &OPRANGE::operator = (int arg)
+{
+	val = arg;
+	return *this;
+}
+
+OPRANGE OPRANGE::operator + (int arg)
+{
+	int result0;
+	result0 = val+arg;
+	OPRANGE result;
+	result.val = result0;
 	return result;
-}
-
-RANGE RANGE::operator - (int arg)
-{
-	RANGE result;
-	result.val=val-arg;
-	return result;
-}
-
-bool RANGE::operator == (int arg)
-{
-	bool result;
-	if (val==arg)
-		result=true;
-	else
-		result=false;
-	return result;
-}
-
-bool RANGE::operator<=(int arg)
-{
-	bool result;
-	if (val<=arg)
-		result=true;
-	else
-		result=false;
-	return result;
-}
-
-JTABRANGE &JTABRANGE::operator = (const int &arg)
-{
-	val = arg;
-	return (*this);
-}
-
-CURSRANGE &CURSRANGE::operator = (const int &arg)
-{
-	val = arg;
-	return (*this);
-}
-
-RANGE &DISPRANGE::operator = (const int &arg)
-{
-	val = arg;
-	return (*this);
-}
-
-ADDRRANGE &ADDRRANGE::operator = (const int &arg)
-{
-	val = arg;
-	return (*this);
-}
-
-RANGE &PROCRANGE::operator = (const int &arg)
-{
-	val = arg;
-	return (*this);
-}
-
-SEGRANGE &SEGRANGE::operator = (const int &arg)
-{
-	val = arg;
-	return (*this);
-}
-
-RANGE &LEVRANGE::operator = (const int &arg)
-{
-	val = arg;
-	return (*this);
 }
