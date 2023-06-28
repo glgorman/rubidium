@@ -22,6 +22,6 @@ public:
 	void WaitForConnection ();
 	bool authenticate();
 	int getstr (char *);
-	void getLine (char *theText);
-	void putText (char *theText);
+	void getLine (char *str);
+	void put_text (char *str);
 };

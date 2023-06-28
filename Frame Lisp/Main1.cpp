@@ -4,11 +4,12 @@
 #include <fstream>
 #include "symbol_table.h"
 #include "btreetype.h"
+#include "language.h"
 #include "node_list.h"
 #include "text_object.h"
 #include "extras.h"
 #include "scripts.h"
-#include "frames1.h"
+#include "frames.h"
 #include "debug.h"
 
 using namespace std;
@@ -20,34 +21,33 @@ fstream preIndex, postIndoex,debugOut;
 extern frame theFrame;
 
 extern void punctuate (char *);
-extern char *long2Text (long);
 extern void echoList (m_bEnd &m_nList);
 
-debugTest<char*> debugTrace;
+extern debugTest<char*> debugTrace;
 
 
 template<class X>
-int bTreeType<X>::indexMarkovians (X hansen)
+int bTreeType<X>::index_markov (const X &hansen)
 {	
 	bTreeType *buggy;
 	char gretal [512];
 	
 	if (branch1!=NULL)
-		branch1->indexMarkovians (hansen);
+		branch1->index_markov (hansen);
 
-	if (markovian!=NULL) {
+	if (markov!=NULL) {
 		strcpy (gretal,hansen);
 		strcat (gretal," ");
 		strcat (gretal,m_pData);
-		buggy = markovian;
+		buggy = markov;
 		buggy->indexMarkovians (gretal);
-		if (markovian->markovian==NULL) {
+		if (markov->markov==NULL) {
 //			debugOut << "[" << gretal << " ";
-//			debugOut << markovian->m_pData << "]\n";
+//			debugOut << markov->m_pData << "]\n";
 		}
 	}	
 	if (branch2!=NULL)
-		branch2->indexMarkovians (hansen);
+		branch2->index_markov (hansen);
 	return 0;
 }
 
@@ -94,6 +94,21 @@ char *numText3 [] =
 	"20","+","-","*","/"
 };
 
+#if 0
+void message (char *caption,text_object &text)
+{
+	char *ascii;
+	text.rewind ();
+	DEBUG_STR << caption;
+	while (text.m_sList.m_pNext!=NULL) {
+		text.get (ascii);
+		DEBUG_STR << ascii << " "; }
+	DEBUG_STR << "\n";
+	DEBUG_STR.flush (); 
+	text.rewind ();
+}
+#endif
+
 bool convertNums (s_node<char*,language> *theNode)
 {
 	bool result = false;
@@ -110,9 +125,10 @@ bool convertNums (s_node<char*,language> *theNode)
 	return result;
 }
 
+#if 0
 void convertText2Num (text_object &theObject)
 {
-#if 0
+
 	char *ascii;
 	s_node<char*,language> *theNode;
 	theObject.rewind ();
@@ -121,7 +137,7 @@ void convertText2Num (text_object &theObject)
 		convertNums (theNode);
 		theObject.get (ascii);
 	}
-#endif
+
 };
 
 bool tellTime (text_object &theInput)
@@ -150,19 +166,6 @@ bool tellTime (text_object &theInput)
 		result=true;
 	return result;
 }
+#endif
 
-
-
-void message (char *caption,text_object &text)
-{
-	char *ascii;
-	text.rewind ();
-	DEBUG_STR << caption;
-	while (text.m_sList.m_pNext!=NULL) {
-		text.get (ascii);
-		DEBUG_STR << ascii << " "; }
-	DEBUG_STR << "\n";
-	DEBUG_STR.flush (); 
-	text.rewind ();
-}
 

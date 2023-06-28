@@ -5,6 +5,7 @@
 #include <fstream>
 #include "symbol_table.h"
 #include "btreetype.h"
+#include "language.h"
 #include "node_list.h"
 #include "text_object.h"
 #include "extras.h"
@@ -13,7 +14,7 @@ using namespace std;
 
 extern fstream debugOut, preIndex;
 
-//	Initial constructor for a markovian snippet in the form
+//	Initial constructor for a markov snippet in the form
 //	of a symbol_table.  Takes a fixed number of words from a
 //	textImage and creates the initial snippet.
 
@@ -28,7 +29,7 @@ mStream::mStream (int length1, text_object &theImage)
 	char *buffer;
 	int length = length1, i = 0;
 	theImage.rewind ();
-	while ((theImage.m_bEnd==false)&&(i<length)) {
+	while ((theImage.end_of_text()==false)&&(i<length)) {
 		theImage.get (buffer);
 		append (buffer);
 		i++; }
@@ -39,44 +40,51 @@ mStream::mStream (int length1, text_object &theImage)
 //	markov tree.
 
 template<class X>
-void bTreeType<X>::linkNode (X theWord)
+void bTreeType<X>::link_node (X &str)
 {
 	bTreeType<X> *theMarkov;
-	theMarkov = new bTreeType<X> ();
-	theMarkov->m_pData = theWord;
-	markovian = theMarkov;
+	theMarkov = new (NULL) bTreeType<X> ();
+	theMarkov->m_pData = str;
+	markov = theMarkov;
 	theMarkov->root = this;
 }
 
 //	this function actually "uploads" the current
 //	mStream into the markov tree.  The stream is
 //	also echoed to the preIndex log textt object.
-//. Links in a markovian snippet under the
+//. Links in a markov snippet under the
 //	designated "penultimate" token.
 
 void mStream::indexWordList (bTreeType<char*> *theTree)
 {
 	int depth=0;
 	char *thisWord, *nextWord;
-	bTreeType<char*> *theMarkov, *theBranch = theTree;
-
-	findPenultimate (thisWord);
-	theBranch = theBranch->getNode (thisWord);
+	bTreeType<char*> *theMarkov;
+	bTreeType<char*> *theBranch = theTree;
+	node_str str;
+	find_penultimate (str);
+	thisWord = str.ascii();
+	theBranch = theBranch->find_node (thisWord);
 	rewind ();
 	while (m_bEnd==false) {
 		get (nextWord);
-		if (theBranch->markovian==NULL) {	
-			theBranch->linkNode (nextWord);
-			theBranch = theBranch->markovian;
+		if (theBranch->markov==NULL) {	
+			theBranch->link_node (nextWord);
+#if 0 //FIXME!
+			theBranch = reinterpret_cast<bTreeType<char*> >(theBranch->markov);
+#endif
 		}
 		else {
-			theMarkov = theBranch->markovian;
-			theBranch = theMarkov->getNode (nextWord); }
+#if 0
+			theMarkov = theBranch->markov;
+			theBranch = theMarkov->getNode (nextWord);
+#endif
+		}
 	}
 	char *test;
 	((text_object)*this) >> test;
 	preIndex << "[" << test << "]\n";
-	delete [] test;
+//	delete [] test;
 }
 
 void bTreeType<char*>::indexMetasToHTML ()
@@ -113,14 +121,14 @@ void bTreeType<char*>::indexMarkovians1 ()
 		}
 		else
 
-//	find the first unexplored markovian branch
+//	find the first unexplored markov branch
 //	along this path then enter that branch and
 //	then prepare to iterate through that tree
 	
-		while (position [n]->markovian!=NULL)
+		while (position [n]->markov!=NULL)
 		{
 			n++;
-			prevNode [n] = position [n-1]->markovian;
+			prevNode [n] = position [n-1]->markov;
 			position [n] = prevNode [n]->findNode1 ();
 			position [n+1] = NULL;
 		}
@@ -128,7 +136,7 @@ void bTreeType<char*>::indexMarkovians1 ()
 //	iterate through symbol_table from this
 //	position
 
-		while (position [n]->markovian==NULL)
+		while (position [n]->markov==NULL)
 		{
 			next [n] = position [n]->m_pNext (prevNode [n]);
 			prevNode [n] = position [n];

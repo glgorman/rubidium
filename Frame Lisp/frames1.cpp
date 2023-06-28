@@ -5,19 +5,74 @@
 #include "defines.h"
 #include "symbol_table.h"
 #include "btreetype.h"
+#include "language.h"
 #include "node_list.h"
 #include "text_object.h"
 #include "scripts.h"
 #include "frames.h"
-#include "frames1.h"
 #include "extras.h"
 
 using namespace std;
 
 bTreeType<char*> *m_root;
-
-frame theFrame;
+extern frame theFrame;
 frame *lframe::m_pFrame = NULL;
+#define HAS_CONSOLE		(YES)
+
+#if 0
+void tstring::create_sandbox()
+{
+	void *ptr = NULL;
+	int size, new_size;
+	size = frame::mem_pool.size();
+	new_size = size+1;
+	frame::mem_pool.resize(new_size);
+	ptr = VirtualAlloc (NULL,1048576,MEM_READ_WRITE);
+	frame_::mem_pool[size] = ptr;
+}
+#endif
+
+tstring *tstring::allocate (size_t sz)
+{
+	//	round up to next 8 byte boundary
+	int str_size = ((sz+7)>>3)<<3;
+	char *ptr1, *ptr2;
+	tstring *ptr3 = NULL;
+	ptr1 = (char*) frame::mem_pool;
+	ptr2 = ptr1+total;
+	total = total+str_size;
+	ptr3 = (tstring*) new (ptr2) tstring;
+	return ptr3;
+}
+
+void *tstring::operator new (size_t sz,void *ptr)
+{
+	void *ptr1;
+	if (ptr==NULL)
+		ptr1 = malloc(sz);
+	else
+		ptr1 = ptr;
+	return ptr;
+}
+
+token::token ()
+{
+	ascii = NULL;
+	m_count = 0;
+}
+
+token::token (char *str, int count)
+{
+	int str_size = strlen(str)+1;
+	do {	
+		ascii  = (char*) tstring::allocate(str_size);		
+		if (ascii==NULL)
+			ASSERT(false);
+	}
+	while (ascii==NULL);
+	strcpy_s (ascii,str_size,str);
+	m_count = count;
+}
 
 void lframe::set_global ()
 {
@@ -51,44 +106,51 @@ int compare (char *a, char *b)
 template<class nodeType>
 bTreeType<nodeType>::bTreeType  (script *theScript)
 {
+	size_t size;
+	char *str = NULL;
 	theScript->m_index.owner = false;
-#if 0
-#ifdef debug
-	strcpy (m_tagid,"bTreeRoot");
-#endif
-#endif
-
 	m_pData = NULL;	
 	bTreeType<nodeType> *theNode;
-	int wordNum, needed = theScript->m_index.size();
-	char *aNode;
+	int wordNum, needed = theScript->m_index.size();	
 	root = markov = branch1 = branch2 = NULL;
-	if (theScript->m_index._symbols.size()==0)
-		return;
+	size = theScript->m_index._symbols.size();
 
-	aNode = theScript->m_index._symbols [0].ascii;
-	if (aNode!=NULL) {
-		m_pData = aNode;
+	if (size==0)
+		return;
+//	loading symbols our the common index string pool
+//	that was created with VirutalAlloc, so no need
+//	to call new or malloc here:
+	str = theScript->m_index._symbols [0].ascii;
+	if (str!=NULL) {
+		m_pData = str;
+		str = NULL;
 //		DEBUG_STR << "adding node \"" << aNode << "\"\n";
 	}
-	for (wordNum=1;wordNum<needed;wordNum++) {
-		aNode = theScript->m_index._symbols[wordNum].ascii;
+
+	for (wordNum=1;wordNum<size;wordNum++)
+	{
+		str = theScript->m_index._symbols[wordNum].ascii;
 #ifdef trace_additions
 		DEBUG_STR << "adding node \"" << aNode << "\"\n";
 #endif
-		theNode = getNode (aNode);
-		if (aNode!=theNode->m_pData) {
-			delete aNode;
-			theScript->m_index._symbols[wordNum].ascii = theNode->m_pData; }
+		theNode = get_node (str);
+
+#if 0
+		if (str!=theNode->m_pData)
+		{
+			ASSERT(false);
+			theScript->m_index._symbols[wordNum].ascii = theNode->m_pData; 
+		}
+#endif
 	}
 //	Sanity test on tree to see if every token was added!
-	for (wordNum=1;wordNum<needed;wordNum++) {
-		aNode = theScript->m_index._symbols[wordNum].ascii;
-		theNode = findNode (aNode);
-		if (compare(aNode,theNode->m_pData)!=0)
+	for (wordNum=1;wordNum<size;wordNum++) {
+		str = theScript->m_index._symbols[wordNum].ascii;
+		theNode = find_node (str);
+		if (compare(str,theNode->m_pData)!=0)
 		{
 #ifdef HAS_CONSOLE
-			DEBUG_STR << "Could not find: " << aNode << "\n";
+//			DEBUG_STR << "Could not find: " << str << "\n";
 #endif
 		}
 	}
@@ -104,9 +166,8 @@ frame::frame ()
 {
 	::m_root = NULL;
 	m_root = NULL;
-//	scripts = new script ("scripts");
-//	common = new script ("common");
-	content.clear ();// = NULL;
+	mem_pool = NULL;
+	content.clear ();
 	available = 0;
 	count = 0;
 	button = false;
@@ -137,15 +198,56 @@ void frame::load_file_images (bool trace)
 	std::vector<token>::iterator iter, end;
 	char suffix [] = ".txt";
 	UINT fail;
-	int howmany = scripts.m_index.size();
+	int how_many = scripts.m_index.size();
+#ifdef HAS_CONSOLE
+	DEBUG_STR << "Loading " << how_many << " file image(s)\n";
+#endif
+
+	if (how_many==0)
+		return;
+
 	iter = scripts.m_index._symbols.begin();
 	end = scripts.m_index._symbols.end ();
-	int j=0;
+	int j=1;
 	for (iter++;iter<end;iter++,j++)
 	{
-		strcpy (theFile, scripts.m_index._symbols [j].ascii);
+		strcpy (theFile, scripts.m_index [j].ascii);
+		script *s = content[j];
+#ifdef HAS_CONSOLE
+		DEBUG_STR << "Preparing to load: " << s->get_file_name() << "\n";
+#endif
 		fail = load_file_image (j,theFile,suffix);
 	}
+}
+
+// todo - make this a static member of frame?
+
+UINT load_file_image (LPVOID param);
+
+UINT frame::load_file_image (int j, char *fileName, char *suffix)
+{
+	bool endOfFile = false;
+	int wordCount = 0;
+	script *theScript = content [j];
+	bool fileOpen = theScript->open_file ();
+	if (fileOpen==true)
+	{
+		LPVOID param = (void*)(theScript);
+#ifdef threadImageLoads
+		AfxBeginThread (::loadFileImage,param,1);
+#else
+		::load_file_image (param);
+#endif		
+	}
+	else {
+		wordCount = -1;
+//		waitForConsole
+#ifdef HAS_CONSOLE
+		DEBUG_STR << "Failed to open: " << fileName << "\n";
+#endif
+//		releaseConsole
+	}
+	return wordCount;
 }
 
 UINT load_file_image (LPVOID param)
@@ -154,14 +256,16 @@ UINT load_file_image (LPVOID param)
 	script *theScript = (script*)(param);
 //	char *fileName = theScript->m_file_name;
 	while (theScript->merged==false)
-		Sleep (100);
-//	waitForConsole;
+	{
 #ifdef HAS_CONSOLE
-	DEBUG_STR << "Loading Image: " << theScript->get_file_name() << "\n";
+		DEBUG_STR << "File Not Merged: " << theScript->get_file_name() << "\n";
 #endif
+		Sleep (1000);
+	}
+//	waitForConsole;
 //	releaseConsole;
 	theScript->load_file_image (NULL);
-	theScript->theImage.count_words (wordCount);
+	wordCount = theScript->theImage.count_words ();
 	theScript->close_output_file ();
 //	waitForConsole
 #ifdef HAS_CONSOLE
@@ -211,38 +315,11 @@ void frame::build_event_list ()
 	}
 }
 
-
-UINT frame::load_file_image (int j, char *fileName, char *suffix)
-{
-	bool endOfFile = false;
-	int wordCount = 0;
-	script *theScript = content [j];
-	bool fileOpen = theScript->open_file ();
-	if (fileOpen==true)
-	{
-		LPVOID param = (void*)(theScript);
-#ifdef threadImageLoads
-		AfxBeginThread (::loadFileImage,param,1);
-#else
-		::load_file_image (param);
-#endif		
-	}
-	else {
-		wordCount = -1;
-//		waitForConsole
-#ifdef HAS_CONSOLE
-		DEBUG_STR << "Failed to open: " << fileName << "\n";
-#endif
-//		releaseConsole
-	}
-	return wordCount;
-}
-
 text_object &frame::operator [] (int contextNum)
 {
 	script *the_script;
 	text_object *theImage;
-	if ((contextNum<=count)&&(contextNum>=0)) {
+	if ((contextNum<count)&&(contextNum>=0)) {
 		the_script = content [contextNum];
 		theImage = &the_script->theImage;
 	}
@@ -253,21 +330,39 @@ text_object &frame::operator [] (int contextNum)
 void frame::buildIndices (int theOrder)
 {
 	bool prompt = false;
-	load_make_file (m_str_make,true);
 	build_symbol_tables (false);
 	masterIndex ("common");
 }
 
+// this method uses a hack to add the items
+// to the index, by tricking the indexing
+// system into placing the symbmols into the
+// table in reverse order.  FIX ME!
+// add some kind of parameter which specifies
+// operartor precedence, or some other ordering
+// scheme.
+
 symbol_table *frame::cons (char **tokens)
 {
 	symbol_table *s = new symbol_table;
-	int i = 0;
+	int i,j,k;
+	i = j = k = 0;
 	s->m_allocate = false;
 	s->_symbols.reserve (40);
 	while (tokens[i]!=NULL)
-	{
-		s->index_word(tokens[i],i);
 		i++;
+
+	// i now comtains the number of non-null
+	// pointers pointed to by char **tokens
+	k=(i+1);
+	// sneaky we to insert the tokens into
+	// the symbol table via a hack - later on
+	// this might get modified to take into
+	// account some form or operator precedence.
+	// be very afraid.
+	while (tokens[j]!=NULL) {
+		s->index_symbol(tokens[j],k-j);
+		j++;
 	}
 	return s;
 }
@@ -280,14 +375,15 @@ bTreeType<char*> *frame::make_tree ()
 	return p_tree;
 }
 
-bool frame::load_make_file (char *str_file, bool prompt)
+bool frame::load_make_file (char *str_file, bool split)
 {
 	int howMany;
 	bool result;
 	scripts.set_file_name (str_file);
+	scripts.set_file_suffix (".txt");
 	result = scripts.open_file ();
 	if (result==true) {
-		scripts.construct_symbol_table (true);
+		scripts.construct_symbol_table (split);
 		scripts.close_input_file ();
 //		scripts->killDelimiters ();
 		howMany = scripts.m_index.size();
@@ -358,7 +454,7 @@ UINT indexFile (LPVOID param)
 		aContext->construct_symbol_table (false);
 		aContext->close_input_file ();
 		aContext->indexed = true;
-		aContext->save_index ();
+		aContext->save_index (f);
 	}
 	return 0;
 }
@@ -379,10 +475,13 @@ void frame::build_symbol_tables (bool trace)
 	end = content.end ();
 	for (;iter<end;iter++)
 	{
-		str_file = scripts.m_index._symbols [j].ascii;
+		str_file = scripts.m_index [j].ascii;
 		(*iter) = new script ();
 		(*iter)->set_file_name (str_file);
+		(*iter)->set_file_suffix (".txt");
+
 		LPVOID param = (LPVOID)((*iter));
+
 #ifdef THREAD_INDEX_LOADS
 		AfxBeginThread (::indexFile,param,1);
 #else
@@ -413,18 +512,21 @@ void frame::mergeFile (int j)
 
 	critical.Lock ();
 //	waitForConsole
-#if 0
+#if 1
 	DEBUG_STR << "Merging Index File: " << theFileName << "\n";
 #endif
 //	releaseConsole;
 	theScript->m_index.owner = false;
 	for (int k=0;k<wordCount;k++)
 	{ 
-		buffer = theScript->m_index._symbols[k].ascii;
-		int times = theScript->m_index._symbols[k].m_count;
-		common.m_index.index_word (buffer,times);
+		buffer = theScript->m_index[k].ascii;
+		int times = theScript->m_index[k].m_count;
+		common.m_index.index_symbol (buffer,times);
+#if 0
+//	dont need to to this if we are using VirutalAlloc!
 		delete buffer;
-		theScript->m_index._symbols[k].ascii = NULL;
+#endif
+		theScript->m_index[k].ascii = NULL;
 	}
 	theScript->merged=true;
 	critical.Unlock ();
@@ -444,7 +546,7 @@ void frame::masterIndex (char *mName)
 	total = scripts.m_index.size();
 	LPVOID param;
 	/* The indexes are retained in memory, so make a master index */
-	for (j=1;j<=total;j++) {
+	for (j=1;j<total;j++) {
 		theScript = content [j];
 		if (theScript->valid==false)
 			continue;
@@ -456,7 +558,7 @@ void frame::masterIndex (char *mName)
 		theScript->purgeIndex ();
 #endif
 	}
-	common.save_index ();
+	common.save_index (mName);
 }
 
 
@@ -466,7 +568,7 @@ UINT saveImageFile (LPVOID param)
 	char *theFile = theScript->get_file_name();
 	while (theScript->imageLoaded==false)
 		Sleep (100);
-	theScript->saveImageFile ();
+	theScript->saveImageFile (theFile);
 	theScript->theImage.rewind ();
 	return 0;
 }
@@ -503,8 +605,8 @@ void frame::writeKeyFiles (bool trace)
 	int j=0;
 	for (;iter<end;iter++,j++)
 	{
-		strcpy (theFile,scripts.m_index._symbols[j].ascii);
-		(*iter)->saveKeyFile ();
+		strcpy (theFile,scripts.m_index[j].ascii);
+		(*iter)->saveKeyFile (theFile);
 		(*iter)->theImage.rewind ();
 
 #ifdef verbose
@@ -527,23 +629,23 @@ void frame::writeKeyFiles (bool trace)
 void frame::buildMarkov (text_object &theImage, bTreeType<char*> *theTree)
 {
 	char *buffer;
-	language m_typeid;
+	grammar::gtype m_typeid;
 	critical.Lock ();
 	mStream theExcerpt (order,theImage);
 	text_object m_echo;
 	theImage.rewind ();
-	while (theImage.m_bEnd!=true) {
+	while (theImage.end_of_text()!=true) {
 		theExcerpt.indexWordList (theTree);
 #ifdef keysOnly
 		do
 			buffer = theImage.get (m_typeid);
-		while	((m_typeid!=unknown)&&(theImage.m_bEnd!=true));
+		while	((m_typeid!=unknown1)&&(theImage.m_bEnd!=true));
 #else
-		buffer = theImage.get (m_typeid);
+		buffer = theImage.get_typed (m_typeid);
 #endif
 		if (buffer!=NULL) {
 			theExcerpt.append (buffer);
-			m_echo.transferFrom (theExcerpt); }
+			m_echo.transfer_from (theExcerpt); }
 	}
 	critical.Unlock ();
 }
@@ -553,17 +655,20 @@ void frame::buildMarkov (text_object &theImage, bTreeType<char*> *theTree)
 
 void frame::buildMarkovians (bTreeType<char*> *theTree)
 {	
-	vector<script>::iterator iter,end;
+	vector<script*>::iterator iter,end;
+	iter = content.begin ();
+	end = content.end ();
+
 	text_object theImage;
 	if (theTree!=NULL)
 	for (;iter<end;iter++)
 	{
 //		waitForConsole
 #ifdef HAS_CONSOLE
-		DEBUG_STR << "Markov test for: "<< (*iter).get_file_name() << "\n";
+		DEBUG_STR << "Markov test for: "<< (*iter)->get_file_name() << "\n";
 #endif
 //		releaseConsole;
-		theImage = (*iter).theImage;
+		theImage = (*iter)->theImage;
 		buildMarkov (theImage, theTree);
 		theImage.rewind ();
 	}
@@ -596,7 +701,7 @@ extractorTag::extractorTag ()
 	result = NULL;
 }
 
-UINT ripText (LPVOID param)
+UINT frame::ripText (LPVOID param)
 {
 	bool foundOne;
 	text_object found;
@@ -615,33 +720,35 @@ UINT ripText (LPVOID param)
 #endif
 	}
 	if (foundOne==true) {
-		found = theImage.getSentence ();
+		found = theImage.get_sentnce ();
 		the->result->append (found);
 	}
 	delete the;
 	return foundOne;
 }
 
-#if 0
-text_object frame::ripText (m_bEnd &keyWords)
+text_object frame::ripText (node_list<node_str> &keyWords)
 {
-	vector<script>::iterator iter,end;
-	iter = content.begin ();
+	char *str;
+	vector<script*>::iterator iter,end;
+	iter = content.begin();
 	end = content.end ();
 	int n;
 	text_object *result = new text_object;
 	for (n=0;iter<end;iter++,n++)
 	{	
-		if ((*iter).valid==false)
+		if ((*iter)->valid==false)
 			continue;
-		if ((*iter).imageLoaded==true) {
+		if ((*iter)->imageLoaded==true) {
 			extractorTag *Tag = new extractorTag;
-			Tag->keyWords = keyWords;
+			keyWords >> str;
+			Tag->keyWords->append (str);
+			
 			Tag->result = result;
 			Tag->count = n;	
 //			Tag->Script = &(*iter);
 #ifdef threadRipText
-			AfxBeginThread (::ripText,(LPVOID)(Tag),1);
+			AfxBeginThread (ripText,(LPVOID)(Tag),1);
 #else
 			::ripText ((LPVOID)(Tag));
 #endif
@@ -650,5 +757,4 @@ text_object frame::ripText (m_bEnd &keyWords)
 	Sleep (1000);
 	return *result;
 }
-#endif
 

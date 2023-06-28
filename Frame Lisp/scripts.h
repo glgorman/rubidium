@@ -4,18 +4,23 @@
 #include <fstream>
 #include <cstring>
 
+using namespace std;
+class ifstream;
 class ofstream;
 
 class script
 {
 private:
+	CCriticalSection critical;
+	fstream	*m_the_file;
+	std::ifstream m_ifile;
+	std::ofstream m_ofile;
+
 	char *m_file_name;
 	char m_suffix [8];
 	bool m_makefile;
-	std::ifstream m_ifile;
-	std::ofstream m_ofile;
-	CCriticalSection critical;
-
+	bool split_paths;
+	
 public:
 	symbol_table	m_index;
 	text_object theImage;
@@ -30,24 +35,28 @@ public:// constructor and dectructor methods
 	~script ();
 
 public:
-	void set_file_name (char *);
+	void set_file_name (char *name);
+	void set_file_suffix (char *idx);
 	char *get_file_name ();
 	bool open_file ();
+	void close_file ();
 	void close_input_file ();
 	void close_output_file ();	
 
-public:// Indexing and data structures	
+public:// Indexing and data structures
+	static UINT indexFile (LPVOID param);
 	void construct_symbol_table (bool trace);
 	UINT load_file_image (LPVOID param);
 
 public:// Verification and archival 
-	void viewIndex (unsigned int howmany);
-	void save_index ();
+	void viewIndex (int howmany);
+	void save_index (char *);
 	void purgeIndex ();
-	void reloadIndex ();
-	void saveKeyFile ();
-	void saveMetaHTML ();
-	void saveImageFile ();
+	void reload_index ();
+	void reload_index (char *);
+	void saveKeyFile (char *);
+	void saveMetaHTML (char *);
+	void saveImageFile (char *);
 	
 private:// Various methods of varying utility
 	int get_word (char *buffer);

@@ -1,6 +1,4 @@
-
-
-//#define	HAS_CONSOLE 
+ 
 #define waitForConsole DEBUG_STR.get ();
 #define releaseConsole DEBUG_STR.release ();
 #define DEBUG_STR cout
@@ -16,7 +14,4 @@
 
 #define order 8
 
-//#define useSerial true
-//#define reportExceptions true
-//#define echoKeywords true
 

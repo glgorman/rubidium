@@ -18,7 +18,7 @@ public:
 	fraction ();
 	fraction (int);
 	fraction(int, int);
-	fraction (MATH_TYPE);
+//	fraction (MATH_TYPE);
 	bool operator != (int arg);
 	long numerator;
 	long denominator;
@@ -40,7 +40,7 @@ public:
 	bool operator<(int arg);
 	bool operator>(int arg); 
 
-	operator MATH_TYPE ();
+	float convert_to_real ();
 	fraction &operator = (fraction &arg);
 	long operator = (long arg);
 };
@@ -51,34 +51,37 @@ public:
 	int mantissa, numerator, denominator;
 	rational (fraction);
 };
+}
 
-typedef enum opcodes
-{	
-	null,identifier,integer,real,frac,
-	add,subtract,multiply,divide,and,or,
-	nand,nor,xor,not,modulus,symbol,
-	left,right,function,
-
-} opcodes;
+namespace mathop
+{
+	typedef enum opcode
+	{		
+		null,identifier,integer,real,frac,
+		add,subtract,multiply,divide,and,or,
+		nand,nor,xor,not,modulus,symbol,
+		left,right,function,
+	};
+}
 
 class operation
 {
 private:
-	opcodes m_opcode;
+	mathop::opcode m_opcode;
 
 public:
-	inline operation &operator = (opcodes x)
+	inline operation &operator = (mathop::opcode x)
 	{
 		m_opcode = x;
 		return *this;
 	};
-	inline bool operator == (opcodes x)
+	inline bool operator == (mathop::opcode x)
 	{
 		bool result;
 		result = (m_opcode==x?true:false);
 		return result;
 	};
-	inline bool operator != (opcodes x)
+	inline bool operator != (mathop::opcode x)
 	{
 		bool result;
 		result = (m_opcode!=x?true:false);
@@ -96,8 +99,10 @@ class EQUATIOM
 	EXPRESSION *expr1, *expr2;
 };
 
+
 class math_object
 {
+private:
 	text_object *result;
 
 private:
@@ -107,11 +112,11 @@ private:
 public:
 	math_object ();
 	~math_object ();
+	math_object &operator >> (char *(&dest));
 	operation detect (char *theToken);
 	void push (operation &the);
-	fraction evaluate (text_object program);
-	fraction calculate (fraction arg1, fraction arg2, operation opCode);
+	FRACTIONS::fraction evaluate (text_object program);
+	FRACTIONS::fraction calculate (FRACTIONS::fraction arg1, FRACTIONS::fraction arg2, operation opCode);
 	text_object alg2polish (text_object source);
 	text_object text2numeric (text_object source);
 };
-}

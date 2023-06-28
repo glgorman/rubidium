@@ -1,4 +1,5 @@
  // key_lists.cpp
+
 #include "stdafx.h"
 #include "defines.h"
 #include <cstring>
@@ -6,12 +7,13 @@
 #include "defines.h"
 #include "symbol_table.h"
 #include "btreetype.h"
+#include "language.h"
 #include "node_list.h"
 #include "text_object.h"
 #include "key_list.h"
 
 #ifdef PASCAL
-extern bool isNum (char aChar);
+extern bool is_digit (char aChar);
 #endif
 
 key_list::key_list ()
@@ -26,14 +28,15 @@ key_list::key_list ()
 
 key_list::key_list (text_object &theInput)
 {
-	s_node<char*,language> temp;
-	language m_typeid = unknown;
+	s_node<char*,grammar::gtype> temp;
+	grammar::gtype m_typeid;
+	m_typeid = grammar::unknown1;
 	char *ascii;
 	theInput.rewind ();
-	while (theInput.m_bEnd==false) {
+	while (theInput.end_of_text()==false) {
 		theInput.get (ascii);
 //	m_typeid = temp.check (ascii);
-		if (m_typeid==unknown)
+		if (m_typeid==grammar::unknown1)
 			append (ascii); }
 	rewind ();
 }
@@ -43,23 +46,23 @@ void key_list::rewind()
 	text_object::rewind();
 }
 
-key_list::key_list (node_list<char*> *m_pList)
+key_list::key_list (node_list<node_str> *m_pList)
 {
-#if 0
-	s_node<char*,language> psList;
+	grammar::gtype what_type;
+	what_type = grammar::unknown1;
+	node<node_str> *the_word;
 	char *ascii;
-	m_nList->m_nPos = m_pList->m_nBegin;
-	theWord = m_nPos;
-	while (m_pList->m_nPos!=NULL) {
-		if (theWord->m_typeid==unknown) {
-			theWord = m_nPos;
-			ascii = theWord->m_pData;
+	the_word = m_pList->m_nBegin;
+	while (m_pList->m_nPos!=NULL)
+	{		
+		if (what_type==grammar::unknown1) {
+			the_word = m_nPos;
+			ascii = the_word->data().ascii();
 			append (ascii); }
 		if (m_nPos!=NULL)
-			m_nPos=theWord->m_pNext;
+			m_nPos=&the_word->next();
 	}
 	rewind ();
-#endif
 }
 
 key_list::key_list (char *m_pText)
@@ -67,7 +70,7 @@ key_list::key_list (char *m_pText)
 #if 0
 	language theType;
 #endif
-	s_node<char*,language> temp;
+	s_node<char*,grammar::gtype> temp;
 	int length, start = 0;
 	char *copy = NULL;
 	if (m_pText!=NULL) {
@@ -95,7 +98,7 @@ key_list::key_list (char *m_pText)
 		if (*copy!=0) 
 		{
 			theType = temp.check ();
-			if (theType==unknown) {
+			if (theType==unknown1) {
 				if (m_nList==NULL)
 				m_nList = new node_list<char*>;
 				m_nList->appendNode (copy); }

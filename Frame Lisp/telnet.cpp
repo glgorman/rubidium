@@ -94,22 +94,22 @@ bool TelnetServer::authenticate()
 	char *message = (char*)m_tempBuff;
 	char userid[256];
 	char pass[256];
-	putText(LOGIN);
+	put_text(LOGIN);
 	getstr(userid);
-	putText(PASSWORD);
+	put_text(PASSWORD);
 	getstr(pass);
 	if (strcmp(userid,"guest")==0)
 	{
 		sprintf_s (message,256,WELCOME_MSG,userid);
-		putText(message);
-		putText(SECURITY_WARNING);
+		put_text(message);
+		put_text(SECURITY_WARNING);
 		return true;
 	}
 	else
 	{
 		sprintf_s(message,256,UNKNOWN_USER,userid);
-		putText(UNKNOWN_USER);
-		putText(ACCESS_DENIED);
+		put_text(UNKNOWN_USER);
+		put_text(ACCESS_DENIED);
 	}
 	return false;
 }
@@ -156,7 +156,7 @@ void TelnetServer::getLine (char *theLine)
 	theLine [length] = '\0';
 }
 
-void TelnetServer::putText (char *theText)
+void TelnetServer::put_text (char *str)
 {
-	putstr (theText);
+	putstr (str);
 }

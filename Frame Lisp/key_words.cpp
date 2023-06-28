@@ -6,10 +6,11 @@
 #include "defines.h"
 #include "symbol_table.h"
 #include "btreetype.h"
+#include "language.h"
 #include "node_list.h"
 #include "keywords.h"
 
-
+extern char *separators[];
 #pragma warning (disable: 4996)
 
 void to_upper (char* str)
@@ -103,15 +104,18 @@ char *lisp_keywords[] =
 	"list","lambda",NULL
 };
 
+#if 0
 char *delimiters [] = 
 {
 	".","!","?","#",NULL
 };
-
+#endif
+#if 0
 char *separators [] = 
 {
 	".", ",", ":", ";", "!", "?","\n","\t","#",NULL
 };
+#endif
 
 typedef struct 
 {
@@ -141,43 +145,42 @@ bool key_word::is_type (char *what, char **type_list)
 	return false;
 };
 
-bool key_word::is_seperator (char *isa)
+bool key_word::is_seperator (char *is_in)
 {
 	bool result; 
-	result = is_type (isa,separators);
+	result = is_type (is_in,separators);
 	return result;
 }
 
-
-bool key_word::is_c (char *isa)
+bool key_word::is_c (char *is_in)
 {
 	bool result; 
-	result = is_type (isa,c_keywords);
+	result = is_type (is_in,c_keywords);
 	return result;
 }
 
-bool key_word::is_pascal (char *isa)
+bool key_word::is_pascal (char *is_in)
 {
 	bool result; 
-	result = is_type (isa,pascal_keywords);
+	result = is_type (is_in,pascal_keywords);
 	return result;
 }
 
-bool key_word::is_numeric (char *isa)
+bool key_word::is_numeric (char *is_in)
 {
 	char theChar;
 	bool result = true;
-	unsigned int n, j = strlen (isa);
+	unsigned int n, j = strlen (is_in);
 	for (n=0;n<j;n++)
 	{
-		theChar = isa [n];
+		theChar = is_in [n];
 		if ((theChar<'0')||(theChar>'9')) {
 			result=false;
 			break;
 		}
 	}
 	if (j==1) {
-		theChar = isa [0];
+		theChar = is_in [0];
 		if ((theChar=='+')||
 		(theChar=='-')||
 		(theChar=='*')||
@@ -188,13 +191,13 @@ bool key_word::is_numeric (char *isa)
 	return result;
 }
 
-bool key_word::is_opcode (char *isa)
+bool key_word::is_opcode (char *is_in)
 {
 	char theChar;
 	bool result = false;
-	unsigned  j = strlen (isa);
+	unsigned  j = strlen (is_in);
 	if (j==1) {
-		theChar = isa [0];
+		theChar = is_in [0];
 		if ((theChar=='+')||
 		(theChar=='-')||
 		(theChar=='*')||
@@ -205,10 +208,10 @@ bool key_word::is_opcode (char *isa)
 	return result;
 }
 
-language key_word::identify (char *ascii)
+source_type key_word::identify_program (char *ascii)
 {
 	char *isThis = ascii;
-	language result;	
+	source_type result;	
 	if (strcmp(isThis," ")==0)
 		result = whitespace;
 	else if (is_pascal (isThis)==true)
@@ -218,7 +221,8 @@ language key_word::identify (char *ascii)
 	else if (is_c (isThis)==true)
 		result = reserved_lisp;
 	else
-		result = unknown;	
+		result = unknown2;
+
 	return result;
 }
 

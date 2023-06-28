@@ -1,23 +1,22 @@
 
 #include "stdafx.h"
-//#include <cstring>
 #include "math.h"
 #include "btreetype.h"
+#include "language.h"
 #include "node_list.h"
 #include "text_object.h"
 #include "expression.h"
+#include "calculator_test.h"
 
 using namespace FRACTIONS;
 
-#if 0
-bool isNum (char theChar)
+bool is_digit (char theChar)
 {
 	if (theChar>='0'&&theChar<='9')
 		return true;
 	else
 		return false;
 }
-#endif
 
 char *hyphen = "-";
 
@@ -42,7 +41,7 @@ char *magnifier[] =
 	"-hundred","","-thousand","-million","-billion"
 };
 
-char *long2Text (long argument)
+char *FRACTIONS::long2Text (long argument)
 {
 	size_t length;
 	char scratch [256], text [256], *result;
@@ -137,6 +136,11 @@ math_object::math_object ()
 {
 	result = new text_object;
 }
+math_object &math_object::operator >> (char *(&dest))
+{
+	*result >> dest;
+	return *this;
+}
 
 math_object::~math_object ()
 {
@@ -147,39 +151,39 @@ operation math_object::detect (char *theToken)
 {
 	operation result;
 	if (theToken==NULL)
-		result = null;
+		result = mathop::null;
 	else if (strcmp (theToken,"+")==0)
-		result = add;
+		result = mathop::add;
 	else if (strcmp (theToken,"-")==0)
-		result = subtract;
+		result = mathop::subtract;
 	else if (strcmp (theToken,"*")==0)
-		result = multiply;
+		result = mathop::multiply;
 	else if (strcmp (theToken,"/")==0)
-		result = divide;
+		result = mathop::divide;
 	else if (strcmp (theToken,"%")==0)
-		result = modulus;
+		result = mathop::modulus;
 	else if ((strcmp (theToken,"[")==0)
 		||(strcmp (theToken,"(")==0))
-		result = left;
+		result = mathop::left;
 	else if ((strcmp (theToken,"]")==0)
 		||(strcmp (theToken,")")==0))
-		result = right;
-	else result = symbol;
+		result = mathop::right;
+	else result = mathop::symbol;
 	return result;
 }
 
 fraction math_object::calculate (fraction arg1, fraction arg2, operation opCode)
 {
 	fraction result;
-	if (opCode==add)
+	if (opCode==mathop::add)
 		result = arg1 + arg2;
-	if (opCode==subtract)
+	if (opCode==mathop::subtract)
 		result = arg1 - arg2;
-	if (opCode==multiply)
+	if (opCode==mathop::multiply)
 		result = arg1 * arg2;
-	if ((opCode==divide)&&(arg2!=0))
+	if ((opCode==mathop::divide)&&(arg2!=0))
 		result = arg1/arg2;
-	if (opCode==modulus)
+	if (opCode==mathop::modulus)
 		result = arg1%arg2;
 	return result;
 }
@@ -192,10 +196,10 @@ fraction math_object::evaluate (text_object program)
 	int n = 0;
 	operation token; 
 	program.rewind ();
-	while (program.m_bEnd==false) {
+	while (program.end_of_text()==false) {
 		program.get (ascii);
 		token = detect (ascii);
-		if (token==symbol) {
+		if (token==mathop::symbol) {
 			stack [n] = atol (ascii);
 			n++; }
 		else if (n>1) {
@@ -210,20 +214,20 @@ fraction math_object::evaluate (text_object program)
 
 void math_object::push (operation &opcode)
 {
-	if (opcode==add)
+	if (opcode==mathop::add)
 		result->append ("+");
-	else if (opcode==subtract)
+	else if (opcode==mathop::subtract)
 		result->append ("-");
-	else if (opcode==multiply)
+	else if (opcode==mathop::multiply)
 		result->append ("*");
-	else if (opcode==divide)
+	else if (opcode==mathop::divide)
 		result->append ("/");
-	else if (opcode==left)
+	else if (opcode==mathop::left)
 		result->append ("(");
-	else if (opcode==right)
+	else if (opcode==mathop::right)
 		result->append (")");
 
-	opcode = null;
+	opcode = mathop::null;
 }
 
 text_object  math_object::alg2polish (text_object theInput)
@@ -231,8 +235,8 @@ text_object  math_object::alg2polish (text_object theInput)
 	char *theToken;
 	operation pending, deferred, token;
 	bool set_exit = false;	
-	pending = null;
-	deferred = null;
+	pending = mathop::null;
+	deferred = mathop::null;
 	
 // Start scanning the algebraic expression 
 	
@@ -243,9 +247,9 @@ text_object  math_object::alg2polish (text_object theInput)
 //	handle negative number at beginning of
 //	expression by subtracting from zero!
 
-	if (token==subtract) {
+	if (token==mathop::subtract) {
 			result->append ("0");
-			pending=subtract; }
+			pending=mathop::subtract; }
 
 	while (theToken!=NULL)
 	{
@@ -253,49 +257,50 @@ text_object  math_object::alg2polish (text_object theInput)
 //	parenthesis and extracting resultant
 //	object
 
-		if (token==left) {
+		if (token==mathop::left) {
 			text_object temp;
-			while (token!=right) {
+			while (token!=mathop::right) {
 				theInput.get (theToken);
 				if (theToken==NULL)
 					break;
 				token = detect (theToken);
-				if (token!=right)
+				if (token!=mathop::right)
 					temp.append (theToken); }
+// TODO: remove recursion.
 			alg2polish (temp);
 		}
-		else if (token==symbol)
+		else if (token==mathop::symbol)
 			result->append  (theToken);
 
 //	multiplication and divisions are carried out
 //	immediately
 
-		else if ((token==multiply)||(token==divide)
-			||(token==modulus)) {								
-				if ((pending==add)||(pending==subtract))
+		else if ((token==mathop::multiply)||(token==mathop::divide)
+			||(token==mathop::modulus)) {								
+				if ((pending==mathop::add)||(pending==mathop::subtract))
 					deferred = pending;
-				else if (pending!=null)
+				else if (pending!=mathop::null)
 					push (pending);
 			pending=token; }
 
 //	addition and subtraction are always deferred
 //	until the next argument is obtained
 
-		else if ((token==add)||(token==subtract)) {			
-			if (pending!=null)
+		else if ((token==mathop::add)||(token==mathop::subtract)) {			
+			if (pending!=mathop::null)
 				push (pending);			
-			if (deferred!=null)
+			if (deferred!=mathop::null)
 				push (deferred);
 			pending = token; 
 		}
 		theInput.get (theToken);
 		token = detect (theToken);
-		if (token==right)
+		if (token==mathop::right)
 			break;
 	}
-	if (pending!=null)
+	if (pending!=mathop::null)
 		push (pending);
-	if (deferred!=null)
+	if (deferred!=mathop::null)
 		push (deferred);
 	return *result;
 }
@@ -447,7 +452,7 @@ long fraction::operator = (long arg)
 	return arg;
 }
 
-fraction::operator MATH_TYPE ()
+MATH_TYPE fraction::convert_to_real ()
 {
 	MATH_TYPE result;
 	result = numerator / (MATH_TYPE) denominator;

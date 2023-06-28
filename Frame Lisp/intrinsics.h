@@ -5,27 +5,61 @@
 // software under GNU/MIT license.
 //
 #include <vector>
+#include "pstring.h"
+
 using namespace std;
 
 #define KEYBOARD (1)
-#define OUTPUT	 (1)
+#define output	 (1)
 #define CONSOLE  (2)
 #define LOCK   (false)
 #define YES		(1)
 #define HAS_CONSOLE		(YES)
 
 typedef FILE PHYLE;
-typedef char *TEXT;
+typedef	enum { CHAR1, CHARPTR1, DOUBLE1, DWORD1, FLOAT1, HEXCH, INT1, SIZE1, ULONG1, VOID1 } PTYPE;
 
-//#define WRITE(DEVICE,COUNT,...) _WRITE(DEVICE,COUNT, __VA_ARGS__)
-//#define WRITELN(DEVICE,COUNT,...) _WRITELN(DEVICE,COUNT, __VA_ARGS__)
+/*NAMES*/
+typedef enum
+{
+	NONE,
+	TYPES,
+	KONST,
+	FORMALVARS,
+	ACTUALVARS,
+	FIELD,
+	PROC1,
+	FUNC,
+	MODULE,
+} IDCLASS;
 
-typedef	enum { CHAR1, CHARPTR1, DOUBLE1, DWORD1, FLOAT1, INT1, SIZE1, ULONG1, VOID1 } PTYPE;
+typedef enum
+{
+	UNDEFINED,
+	SCALAR,
+	SUBRANGE,
+	POINTER,
+	LONGINT,
+	POWER,
+	ARRAYS,
+	RECORDS,
+	FILES,
+	TAGFLD,
+	VARIANT2,
+} STRUCTFORM;
 
 class sandbox
 {
+	LPVOID	m_buffer;
+	size_t	m_size;
+	size_t	m_pos;
+
 public:
+	sandbox ();
 	static LPVOID allocate_p(size_t size);
+	LPVOID pascal_new (size_t sz);
+	void pascal_mark (LPVOID &ptr);
+	void pascal_release (LPVOID ptr);
 };
 
 struct pascal_error
@@ -40,7 +74,6 @@ struct pascal_error
 		errstr = str;
 	}
 };
-
 
 extern pascal_error error_list[];
 
@@ -87,9 +120,11 @@ public:
 		int		i;
 		size_t	sz;
 	};
+
 	s_param (DWORD arg);
 	s_param (char arg);
 	s_param (char* arg);
+	s_param (ALPHA &arg);
 	s_param (double arg);
 	s_param (float arg);
 	s_param (int arg);
@@ -103,11 +138,28 @@ namespace pascal0
 struct key_info;
 };
 
-namespace SEARCH
+class identifier;
+typedef identifier* CTP;
+class structure;
+typedef structure* STP;
+
+namespace treetype
 {
 	pascal0::key_info *get_key_info (int index);
-	void RESET_SYMBOLS();
-	int IDSEARCH(int pos, char *&str);
+	void struct_info (const CTP node, STP stp);
+	void symbol_dump(const CTP &n1, int i, IDCLASS ftype);
+	int compare (ALPHA &str1, ALPHA &str2);
+	int idsearch (const CTP& n1, CTP& n2, ALPHA &str);
+	int keysearch (int pos, char *&str);
+	void printleaf (const CTP node, IDCLASS target);
+#ifdef PASCAL_COMPILER
+	void printtree1 (const CTP &n1);
+	void printtree (char *tag, const CTP &n1, int i, IDCLASS, bool verbose);
+#endif
+	void reset_symbols ();
+	void TRAP1 (char *str1, char *str2);
+	void TRAP2 (char *str1, char *str2, CTP LCP0);
+	void TRAP3 (char *str1, char *str2);
 };
 
 namespace SYSCOMM
@@ -131,42 +183,44 @@ using namespace std;
 
 void READLN(int uid, char *(&));
 
-void _WRITE(int uid, size_t argc, ...);
-void WRITE(int uid, const s_param &);
-void WRITE(int uid, const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
+void _WRITE(int uid, bool, size_t argc, ...);
+void write(int uid, const s_param &);
+void write(int uid, const s_param &,const s_param &);
+void write(int uid, const s_param &,const s_param &,const s_param &);
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &);
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
 		   const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
 		   const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
 		   const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITE(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
+void write(int uid, const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,
 		   const s_param &,const s_param &,const s_param &,const s_param &,const s_param &,const s_param &);
 
-void _WRITELN(int uid, size_t argc, ...);
-
-void WRITELN(int uid);
-void WRITELN(int uid, const s_param &);
-void WRITELN(int uid, const s_param &,const s_param &);
-void WRITELN(int uid, const s_param &,const s_param &,const s_param &);
-void WRITELN(int uid, const s_param &,const s_param &,const s_param &,const s_param &);
-void WRITELN(int uid, const s_param &,const s_param &,const s_param &,const s_param &,
+void writeln(int uid);
+void writeln(int uid, const s_param &);
+void writeln(int uid, const s_param &,const s_param &);
+void writeln(int uid, const s_param &,const s_param &,const s_param &);
+void writeln(int uid, const s_param &,const s_param &,const s_param &,const s_param &);
+void writeln(int uid, const s_param &,const s_param &,const s_param &,const s_param &,
 			 const s_param &);
-void WRITELN(int uid, const s_param &,const s_param &,const s_param &,const s_param &
+void writeln(int uid, const s_param &,const s_param &,const s_param &,const s_param &
 			 ,const s_param &,const s_param &);
-void WRITELN(int uid, const s_param &,const s_param &,const s_param &,const s_param &,
+void writeln(int uid, const s_param &,const s_param &,const s_param &,const s_param &,
 			 const s_param &,const s_param &,const s_param &);
-void WRITELN(int uid, const s_param &,const s_param &,const s_param &,const s_param &,
+void writeln(int uid, const s_param &,const s_param &,const s_param &,const s_param &,
 			 const s_param &,const s_param &,const s_param &,const s_param &);
 
 
 int SCAN(int,bool,char,const char *(a));
+
+DWORD MEMAVAIL();
+void NEW(void *(&ptr), int sz);
+void MARK(void*(&));
 void RELEASE(void*);
 
 float PWROFTEN(int i);
@@ -174,8 +228,5 @@ int TRUNC(double);
 int ORD(const int &);
 bool ODD(const int &);
 int ROUND (double arg);
-void NEW(void *(&ptr), int sz);
-void MARK(void*(&));
 void TIME(int &, int &);
 void MOVELEFT(const char*,char*,int);
-DWORD MEMAVAIL();

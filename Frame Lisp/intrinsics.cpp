@@ -6,6 +6,53 @@
 #define PAGESZ (4096)
 #define	BLOCKSIZE	(512)
 
+template <typename X>
+class variadic 
+{
+private:
+	size_t sz;
+	va_list vl;
+	X *ptr1;
+	vector<X> ptr2;
+	X *get()
+	{
+		X *result;
+		result=va_arg(vl,const X*);
+		return result;
+	}
+
+public:
+	variadic (size_t sz,...)
+	{
+		va_start(vl,sz);
+		ptr2.resize (sz);
+	}
+	void construct ()
+	{
+		int i;
+		for (i=0;i<sz;i++)
+			ptr2[i]=get();
+	}
+};
+
+class slist: public variadic<s_param>
+{
+
+};
+
+variadic<int> *doubler (size_t sz,...)
+{
+	variadic<int> *result;
+	result = NULL;
+	return result;
+}
+
+void test_variadic ()
+{
+	variadic<int> *data;
+	data = doubler (1,2,3,4,5);
+}
+
 pascal_file::pascal_file ()
 {
 	blocks_written = 0;
@@ -160,15 +207,20 @@ s_param::s_param(char arg)
 	m_type = CHAR1;
 	ch = arg;
 }
-s_param::s_param(unsigned long arg)
-{
-	m_type = ULONG1;
-	ch = arg;
-}
 s_param::s_param(char* arg)
 {
 	m_type = CHARPTR1;
 	str = arg;
+}
+s_param::s_param(ALPHA &arg)
+{
+	m_type = CHARPTR1;
+	str = (char*)arg;
+}
+s_param::s_param(unsigned long arg)
+{
+	m_type = ULONG1;
+	ch = arg;
 }
 s_param::s_param(double arg)
 {
@@ -196,155 +248,157 @@ s_param::s_param(size_t arg)
 	sz = arg;
 }
 
-void WRITE(int uid, const s_param &w1)
+void write(int uid, const s_param &w1)
 {
-	_WRITE(uid,1,&w1);
+	_WRITE(uid,false,1,&w1);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2)
+void write(int uid, const s_param &w1, const s_param &w2)
 {
-	_WRITE(uid,2,&w1,&w2);
+	_WRITE(uid,false,2,&w1,&w2);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3)
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3)
 {
-	_WRITE(uid,3,&w1,&w2,&w3);
+	_WRITE(uid,false,3,&w1,&w2,&w3);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4)
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4)
 {
-	_WRITE(uid,4,&w1,&w2,&w3,&w4);
+	_WRITE(uid,false,4,&w1,&w2,&w3,&w4);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5)
 {
-	_WRITE(uid,5,&w1,&w2,&w3,&w4,&w5);
+	_WRITE(uid,false,5,&w1,&w2,&w3,&w4,&w5);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5, const s_param &w6)
 {
-	_WRITE(uid,6,&w1,&w2,&w3,&w4,&w5,&w6);
+	_WRITE(uid,false,6,&w1,&w2,&w3,&w4,&w5,&w6);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5, const s_param &w6, const s_param &w7)
 {
-	_WRITE(uid,7,&w1,&w2,&w3,&w4,&w5,&w6,&w7);
+	_WRITE(uid,false,7,&w1,&w2,&w3,&w4,&w5,&w6,&w7);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8)
 {
-	_WRITE(uid,8,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8);
+	_WRITE(uid,false,8,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8, const s_param &w9)
 {
-	_WRITE(uid,9,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9);
+	_WRITE(uid,false,9,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8,
 	const s_param &w9, const s_param &w10)
 {
-	_WRITE(uid,10,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10);
+	_WRITE(uid,false,10,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8,
 	const s_param &w9, const s_param &w10, const s_param &w11)
 {
-	_WRITE(uid,11,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11);
+	_WRITE(uid,false,11,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11);
 }
 
-void WRITE(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void write(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 	const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8,
 	const s_param &w9, const s_param &w10, const s_param &w11, const s_param &w12)
 {
-	_WRITE(uid,12,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11,&w12);
+	_WRITE(uid,false,12,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11,&w12);
 }
 
-void WRITELN(int uid)
+void writeln(int uid)
 {
-	_WRITELN(uid,0,NULL);
+	_WRITE(uid,true,0,NULL);
 }
 
-void WRITELN(int uid, const s_param &w1)
+void writeln(int uid, const s_param &w1)
 {
-	_WRITELN(uid,1,&w1);
+	_WRITE(uid,true,1,&w1);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2)
+void writeln(int uid, const s_param &w1, const s_param &w2)
 {
-	_WRITELN(uid,2,&w1,&w2);
+	_WRITE(uid,true,2,&w1,&w2);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3)
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3)
 {
-	_WRITELN(uid,3,&w1,&w2,&w3);
+	_WRITE(uid,true,3,&w1,&w2,&w3);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4)
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4)
 {
-	_WRITELN(uid,4,&w1,&w2,&w3,&w4);
+	_WRITE(uid,true,4,&w1,&w2,&w3,&w4);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 		   const s_param &w5)
 {
-	_WRITELN(uid,5,&w1,&w2,&w3,&w4,&w5);
+	_WRITE(uid,true,5,&w1,&w2,&w3,&w4,&w5);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 		   const s_param &w5, const s_param &w6)
 {
-	_WRITELN(uid,6,&w1,&w2,&w3,&w4,&w5,&w6);
+	_WRITE(uid,true,6,&w1,&w2,&w3,&w4,&w5,&w6);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 		   const s_param &w5, const s_param &w6, const s_param &w7)
 {
-	_WRITELN(uid,7,&w1,&w2,&w3,&w4,&w5,&w6,&w7);
+	_WRITE(uid,true,7,&w1,&w2,&w3,&w4,&w5,&w6,&w7);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 		   const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8)
 {
-	_WRITELN(uid,8,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8);
+	_WRITE(uid,true,8,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 		   const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8, const s_param &w9)
 {
-	_WRITELN(uid,9,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9);
+	_WRITE(uid,true,9,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 		   const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8,
 		   const s_param &w9, const s_param &w10)
 {
-	_WRITELN(uid,10,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10);
+	_WRITE(uid,true,10,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3,const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3,const s_param &w4,
 		   const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8,
 		   const s_param &w9, const s_param &w10, const s_param &w11)
 {
-	_WRITELN(uid,11,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11);
+	_WRITE(uid,true,11,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11);
 }
 
-void WRITELN(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
+void writeln(int uid, const s_param &w1, const s_param &w2, const s_param &w3, const s_param &w4,
 		   const s_param &w5, const s_param &w6, const s_param &w7, const s_param &w8,
 		   const s_param &w9, const s_param &w10, const s_param &w11, const s_param &w12)
 {
-	_WRITELN(uid,12,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11,&w12);
+	_WRITE(uid,true,12,&w1,&w2,&w3,&w4,&w5,&w6,&w7,&w8,&w9,&w10,&w11,&w12);
 }
 
-void _WRITE(int uid, size_t sz,...)
+void _WRITE(int uid, bool crlf, size_t sz,...)
 {
+	size_t width;
+	char *ptr;
 	char buffer1[PAGESZ];
 	char buffer2[PAGESZ];
 	const s_param *val;
@@ -363,7 +417,11 @@ void _WRITE(int uid, size_t sz,...)
 			sprintf_s(buffer1,PAGESZ,"%c",val->ch);
 			break;
 		case CHARPTR1:
-			sprintf_s(buffer1,PAGESZ,"%s",val->str);
+			if (val->str==NULL)
+				ptr = "<null>";
+			else
+				ptr = val->str;
+			sprintf_s(buffer1,PAGESZ,"%s",ptr);
 			break;
 		case DOUBLE1:
 			sprintf_s(buffer1,PAGESZ,"%lf",val->d);
@@ -371,14 +429,18 @@ void _WRITE(int uid, size_t sz,...)
 		case FLOAT1:
 			sprintf_s(buffer1,PAGESZ,"%f",val->f);
 			break;
+		case HEXCH:
+			sprintf_s(buffer1,PAGESZ,"%08x",val->i);
+			break;
 		case INT1:
 			sprintf_s(buffer1,PAGESZ,"%d",val->i);
 			break;
 		case SIZE1:
+			width = val->sz;
 			sprintf_s(buffer1,PAGESZ,"%s"," ");
 			break;
 		case VOID1:
-			sprintf_s(buffer1,PAGESZ,"%0x8d",val->i);
+			sprintf_s(buffer1,PAGESZ,"%08x",val->i);
 			break;
 		default:
 			break;
@@ -386,51 +448,8 @@ void _WRITE(int uid, size_t sz,...)
 		strcat_s(buffer2,PAGESZ,buffer1);
 		i++;
 	}
-	SYSCOMM::OutputDebugString(buffer2);
-	va_end(vl);
-}
-
-void _WRITELN(int uid, size_t sz,...)
-{
-	char buffer1[PAGESZ];
-	char buffer2[PAGESZ];
-	const s_param *val;
-	unsigned int i;
-	va_list vl;
-	va_start(vl,sz);
-	i=0;
-	memset(buffer1,0,PAGESZ);
-	memset(buffer2,0,PAGESZ);
-	while(i<sz)
-	{
-		val=va_arg(vl,const s_param *);
-		switch (val->m_type)
-		{
-		case CHAR1:
-			sprintf_s(buffer1,PAGESZ,"%c",val->ch);
-			break;
-		case CHARPTR1:
-			sprintf_s(buffer1,PAGESZ,"%s",val->str);
-			break;
-		case DOUBLE1:
-			sprintf_s(buffer1,PAGESZ,"%lf",val->d);
-			break;
-		case FLOAT1:
-			sprintf_s(buffer1,PAGESZ,"%f",val->f);
-			break;
-		case INT1:
-			sprintf_s(buffer1,PAGESZ,"%d",val->i);
-			break;
-		case SIZE1:
-			sprintf_s(buffer1,PAGESZ,"%s"," ");
-			break;
-		default:
-			break;
-		}
-		strcat_s(buffer2,PAGESZ,buffer1);
-		i++;
-	}
-	strcat_s(buffer2,PAGESZ,"\n");
+	if (crlf==true)
+		strcat_s(buffer2,PAGESZ,"\n");
 	SYSCOMM::OutputDebugString(buffer2);
 	va_end(vl);
 }
@@ -577,7 +596,7 @@ int SYSCOMM::UNITWRITE (int UNITNUMBER, char *ARRAY, int LENGTH, int BLOCK, DWOR
 	{
 	case 3: // Terminal
 		if (MODE==0) {
-			WRITELN(OUTPUT,ARRAY);
+			writeln(output,ARRAY);
 		}
 		result = 0;
 	default:
@@ -592,7 +611,10 @@ int SYSCOMM::UNITWRITE (int UNITNUMBER, char *ARRAY, int LENGTH, int BLOCK, DWOR
 
 int SYSCOMM::BLOCKREAD(pascal_file *file, char *buf, int blocks, int &read)
 {
-	WRITELN(OUTPUT,"SYSCOMM::BLOCKREAD(FILE*, char*, int, &int)");
+#if 0
+	writeln(output,"SYSCOMM::BLOCKREAD(FILE*, char*, int, &int)");
+#endif
+
 	char *block_ptr;
 	read = blocks;
 	int i;
@@ -626,13 +648,13 @@ int SYSCOMM::BLOCKREAD(pascal_file *file, char *buf, int blocks, int &read)
 			result++;		
 		}
 	}
-//	WRITELN(OUTPUT,"BLOCK ",block_pos,"\n>>>>>>>>",buf,"<<<<<<<<");
+//	writeln(output,"BLOCK ",block_pos,"\n>>>>>>>>",buf,"<<<<<<<<");
 	return result;
 }
 
 int SYSCOMM::BLOCKWRITE(pascal_file *file, const unsigned char *buf, int blocks, int offset)
 {
-	WRITELN (OUTPUT,"SYSCOMM::BLOCKWRITE offset= ",offset);
+	writeln (output,"SYSCOMM::BLOCKWRITE offset= ",offset);
 //	assume that we wrote a blcok
 //	todo - save the blocks in memory so we can have
 //	a hex view - or examine with the dissassembler
@@ -648,7 +670,7 @@ int SYSCOMM::BLOCKWRITE(pascal_file *file, const unsigned char *buf, int blocks,
 		k = 512*offset+16*i;
 		position = file->blocks_written*512+k;
 		sprintf_s (hexbuf,32,"%08x: ",position);
-		WRITE (OUTPUT,hexbuf);
+		write (output,hexbuf);
 		for (j=0;j<16;j++)
 		{
 			ch = buf[k+j];
@@ -656,7 +678,7 @@ int SYSCOMM::BLOCKWRITE(pascal_file *file, const unsigned char *buf, int blocks,
 			hexbuf[1]=hexchar[(0x0f&ch)];
 			hexbuf[2]=0;
 			hexbuf[3]=0;
-			WRITE(OUTPUT,hexbuf);
+			write(output,hexbuf);
 		}
 		for (j=0;j<16;j++)
 		{
@@ -671,7 +693,7 @@ int SYSCOMM::BLOCKWRITE(pascal_file *file, const unsigned char *buf, int blocks,
 			strbuf[j]=ch;
 		}
 		strbuf[j]=0;
-		WRITELN(OUTPUT," --> \"",strbuf,"\"");
+		writeln(output," --> \"",strbuf,"\"");
 	}
 	file->blocks_written++;
 	int result = 1;

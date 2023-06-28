@@ -1,10 +1,14 @@
 
+/////////////////////////////////////////////////////////
 //
-// functions needed to support "set" type in Pascal
+//
+// F unctions needed to support "set" type in Pascal
 // like languages.  Copyright 2021 Gerold Lee Gorman
 // Permission to redistribute and make use of this
 // software under GNU/MIT license.
 //
+//
+////////////////////////////////////////////////////////
 
 #include "stdafx.h"
 #include <stdarg.h>
@@ -27,14 +31,16 @@ namespace chartypes
 	SETOFCHAR hex(22,'0','1','2','3','4','5','6','7','8','9',
 		'A','B','C','D','E','F','a','b','c','d','e','f');
 	SETOFCHAR whitespace(4,' ','\t','\n','\r');
+	SETOFCHAR delimiters(15,' ','\t','\n','\r',';',',','!','?',
+		'(',')',':','[',']','{','}');
 	SETOFCHAR alpha(52,'A','B','C','D','E','F','G','H','I','J','K','L','M',
 		'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
 		'a','b','c','d','e','f','g','h','i','j','k','l','m',
 		'n','o','p','q','r','s','t','u','v','w','x','y','z');
-	SETOFCHAR punct1(12,'.',',',':','\\','"','\'','(',')','{','}','[',']');
 	SETOFCHAR operat(11,'+','-','*','/','%','|','~','=','&','>','<');
+	SETOFCHAR punct1(12,'.',',',':','\\','"','\'','(',')','{','}','[',']');
+	SETOFCHAR punct2(9,'`','!','@','#','$','^','&','_','|');
 }
-
 
 SETOFSYS::SETOFSYS()
 {
@@ -127,14 +133,14 @@ void SETOFSYS::debug_list (char *str1) const
 	int n;
 	char *str2;
 	size_t sz = SETSZ*sizeof(DWORD)*8; 
-	WRITE(OUTPUT,"SETOFSYS ",str1,": (");
+	write(output,"SETOFSYS ",str1,": (");
 	for (n=0;n<sz;n++)
 	if (in(n))
 	{
 		str2 = SYMBOL_NAMES1[n];
-		WRITE (OUTPUT,str2,",");
+		write (output,str2,",");
 	}
-	WRITELN(OUTPUT,")");
+	writeln(output,")");
 }
 
 SETOFIDS::SETOFIDS()
@@ -163,14 +169,14 @@ void SETOFIDS::debug_list (char *str1) const
 	int n;
 	char *str2;
 	size_t sz = SETSZ*sizeof(DWORD)*8; 
-	WRITE(OUTPUT,"SETOFIDS ",str1,": (");
+	write(output,"SETOFIDS ",str1,": (");
 	for (n=0;n<sz;n++)
 	if (in(n))
 	{
 		str2 = ID_NAMES1[n];
-		WRITE (OUTPUT,str2,",");
+		write (output,str2,",");
 	}
-	WRITELN(OUTPUT,")");
+	writeln(output,")");
 }
 
 SETOFIDS SETOFIDS::operator + (int val) const
